@@ -1,6 +1,6 @@
 #!/usr/bin/bash
-uname=(`tr '[A-Z]' '[a-z]' <$1`)
-fruit=(`tr '[A-Z]' '[a-z]' <fruits.txt`)
+uname=(`sed 's/.*/\L&/' <$1`)
+fruit=(`sed 's/.*/\L&/' <fruits.txt`)
 for p in ${uname[@]}; do
     ok="YES"
     for q in ${fruit[@]}; do
