@@ -1,9 +1,11 @@
 #!/usr/bin/bash
 uname=(`sed 's/.*/\L&/' <$1`)
 fruit=(`sed 's/.*/\L&/' <fruits.txt`)
-for p in ${uname[@]}; do
+for p in ${uname[@]}
+do
     ok="YES"
-    for q in ${fruit[@]}; do
+    for q in ${fruit[@]}
+    do
         [ ${#p} -lt 5 ] ||
         [ ${#p} -gt 20 ] ||
         [[ "$p" =~ ^([^0-9]*)$ ]] ||

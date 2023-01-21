@@ -2,7 +2,8 @@
 
 IFS=$'\n'
 >temp.txt
-while read line; do
+while read line
+do
     [[ $line =~ .*$2.* ]] &&
     echo $line | sed 's/\([a-zA-Z]\)\([a-zA-Z]\)/\U\1\L\2/g' >>temp.txt ||
     echo $line >>temp.txt
