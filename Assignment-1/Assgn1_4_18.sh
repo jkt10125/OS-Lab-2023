@@ -1,5 +1,4 @@
 #!/usr/bin/bash
-
 IFS=$'\n'
 >temp.txt
 while read line
