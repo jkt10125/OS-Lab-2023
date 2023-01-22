@@ -1,3 +1,5 @@
+
+
 #!/usr/bin/bash
 uname=(`sed 's/.*/\L&/' <$1`)
 fruit=(`sed 's/.*/\L&/' <fruits.txt`)
