@@ -1,13 +1,20 @@
 #!/usr/bin/bash
 
-atr=`echo ${@:3}`
+mkdir -p $2
 
-dir=`basename -s .json -a json/*.json`
-
-`mkdir -p $2`
-
-for file in $dir
+input_jq_string="[."$3
+for atr in ${@:4}
 do
-    `echo ${@:3} | tr " " "," >$2/file.csv`
+    input_jq_string=$input_jq_string",."$atr
 done
+input_jq_string=$input_jq_string"]"
 
+for file in $1/*.jsonl
+do
+
+    filename=$2/`basename $file .jsonl`.csv
+
+    echo "$input_jq_string" | sed 's/\[//' | sed 's/\]//' | sed 's/\.//g' > $filename
+    curl -s $file | cat $file | jq -r --arg input_jq_string $input_jq_string "$input_jq_string | join(\",\")" >> $filename 
+
+done
