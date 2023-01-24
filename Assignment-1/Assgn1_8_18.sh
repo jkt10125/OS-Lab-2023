@@ -42,7 +42,7 @@ fi
 
 (cat main.csv && echo "$1,$2,$3,$4") | sort -t- -k 3.1,3.2 -k 2n -k 1n -o main.csv
 
-
+12 31 02,food,1000,Abhay
 
 if [ -n "$optarg_c" ]
 then
