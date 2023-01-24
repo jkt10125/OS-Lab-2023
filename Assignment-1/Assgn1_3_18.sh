@@ -13,7 +13,6 @@ for file in $1/*.jsonl
 do
 
     filename=$2/`basename $file .jsonl`.csv
-
     echo "$input_jq_string" | sed 's/\[//' | sed 's/\]//' | sed 's/\.//g' > $filename
     curl -s $file | cat $file | jq -r --arg input_jq_string $input_jq_string "$input_jq_string | join(\",\")" >> $filename 
 
