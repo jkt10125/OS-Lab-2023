@@ -1,2 +1,2 @@
 taaj: taaj.cpp
-	g++ taaj.cpp -o taaj
+	g++ -Wall taaj.cpp -o taaj
