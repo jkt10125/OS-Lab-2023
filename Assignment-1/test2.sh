@@ -50,7 +50,6 @@ echo "Reading numbers from $istream...">&2
 
 while read -r n
 do
-    n="${n//[$'\t\r\n ']}"
     i=1
     while [ $i -le $n ]
     do
