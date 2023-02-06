@@ -1,14 +1,10 @@
-#include <unistd.h>
 #include <termios.h>
-#include <ctype.h>
-#include <stdlib.h>
-#include <iostream>
-#include <string.h>
 #include <sys/wait.h>
+#include <bits/stdc++.h>
 
-#include <vector>
-#include <sstream>
 using namespace std;
+
+#define CTRL_KEY(k) ((k) & 0x1f)
 
 struct termios orig_termios;
 
@@ -22,7 +18,7 @@ void enableRawMode() {
 
     struct termios raw = orig_termios;
     raw.c_iflag &= ~(IXON);
-    raw.c_lflag &= ~(IEXTEN | ISIG);
+    raw.c_lflag &= ~(IEXTEN | ICANON | ISIG);
 
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
@@ -34,10 +30,33 @@ void die(const string s) {
 
 const int MAXCHAR = 100;
 const int MAXARGS = 100;
+
+void processCtrl(char c) {
+    switch(c) {
+        case CTRL_KEY('c'):
+            exit(0);
+            break;
+        default: 
+            break;
+    }
+}
+
+string ReadLine() {
+    char c;
+    cin >> c;
+    string arg;
+    while (c != '\n') {
+        processCtrl(c);
+        arg.push_back(c);
+        cin >> c;
+    }
+    return arg;
+}
+
 // Trims leading and trailing whitespaces of a string
-void trim(string& str) {
+void trim(string &str) {
     int i = 0;
-    while (i < static_cast<int>(str.length()) && str[i] == ' ') {
+    while (i < str.size() && str[i] == ' ') {
         i++;
     }
     str = str.substr(i);
@@ -60,10 +79,6 @@ vector<string> split(string& str, char delim) {
     return tokens;
 }
 
-int main()
-{
-    enableRawMode();
-
 int main() {
     enableRawMode();
 
@@ -75,12 +90,6 @@ int main() {
         
         cout << "\033[1;32m" << uname << "@" << hname << ":" << "\033[1;33m" << cdir << "\033[0m" << "$ ";
         fflush(stdout);
-        // cout << u8"\u276f" << endl;
-        fgets(input, MAX_LINE, stdin);
-        // cin.getline(input, MAX_LINE, '\r');
-        // getchar();
-        // cout<<input<<endl;
-        input[strcspn(input, "\n")] = 0;
 
         char input[MAXCHAR];
         char *args[MAXARGS];
@@ -106,7 +115,7 @@ int main() {
         else {
             int status;
             waitpid(pid, &status, 0);
-            if(WIFEXITED(status))
+            // if (WIFEXITED(status))
         }
     }
 
