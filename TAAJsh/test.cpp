@@ -1,83 +1,88 @@
-#include <unistd.h>
+#include <termios.h>
+#include <sys/wait.h>
 #include <bits/stdc++.h>
+#include "command.hpp"
+#include <fcntl.h>
+#include <unistd.h>
 
 using namespace std;
 
-void execute_command(vector<string> command){
-    char * arr[command.size()+1];
-    for(int i = 0 ; i < command.size() ; i++){
-        arr[i] = (char*)command[i].c_str();
+#define CTRL_KEY(k) ((k)&0x1f)
+
+struct termios orig_termios;
+
+const int MAXCHAR = 100;
+const int MAXARGS = 100;
+
+void disableRawMode()
+{
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
+}
+
+void enableRawMode()
+{
+    tcgetattr(STDIN_FILENO, &orig_termios);
+    atexit(disableRawMode);
+
+    struct termios raw = orig_termios;
+    raw.c_iflag &= ~(IXON);
+    raw.c_lflag &= ~(IEXTEN | ICANON | ISIG);
+
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
+}
+
+void die(const string s)
+{
+    perror(s.c_str());
+    exit(0);
+}
+// Function to execute commands
+void execute_command(vector<string> command)
+{
+    char *arr[command.size() + 1];
+    for (int i = 0; i < command.size(); i++)
+    {
+        arr[i] = (char *)command[i].c_str();
     }
-    for(int i = 0 ; i < command.size() ; i++){
-        cout<<arr[i]<<endl;
-    }
+    arr[command.size()] = NULL;
+    execvp(arr[0], arr); // Executing the command.
+    cout << "Error" << endl;
     exit(0);
 }
 
-vector<string> InputOutputIdentifier(string str) {
-    bool output = (str.find('>')!=string::npos);
-    bool input = (str.find('<')!=string::npos);
-    vector<string> tokens(3);
-
-    if(input && output){
-        int pos1 = str.find('<');
-        int pos2 = str.find('>');
-        tokens[0] = str.substr(0, pos1);
-        tokens[1] = str.substr(pos1+1, pos2-pos1-1);
-        tokens[2] = str.substr(pos2+1);
+int main()
+{
+    // enableRawMode();
+    int i = 0;
+    vector<string> commands;
+    commands.push_back("ls -l");
+    commands.push_back("g++ test2.cpp -o test2");
+    commands.push_back("./test2 ok run this");
+    commands.push_back("./test2 < input.txt");
+    commands.push_back("./test2 < input.txt > output.txt");
+    while (i < 5)
+    {
+        cout << commands[i] << endl;
+        pid_t pid = fork();
+        if (pid == 0)
+        {
+            Command c(commands[i]);
+            execute_command(c.args);
+        }
+        else if (pid < 0)
+            die("fork");
+        else
+        {
+            if (open("input.txt", O_RDONLY) < 0)
+            {
+                perror("open");
+                exit(0);
+            }
+            int status;
+            waitpid(pid, &status, 0);
+        }
+        i++;
     }
-    else if(input){
-        int pos = str.find('<');
-        tokens[0] = str.substr(0, pos);
-        tokens[1] = str.substr(pos+1);
-        tokens[2] = "";
-    }
-    else if(output){
-        int pos = str.find('>');
-        tokens[0] = str.substr(0, pos);
-        tokens[1] = "";
-        tokens[2] = str.substr(pos+1);
-    }
-    else{
-        tokens[0] = str;
-        tokens[1] = "";
-        tokens[2] = "";
-    }
 
-    return tokens;
-}
-
-int main() {
-    // char c;
-    // while(1){
-    //     string s;
-    //     cin>>s;
-    //     if(s=="q")
-    //         return 0;
-    // }
-
-    // vector<string> s = {"ls", "-l"};
-    // execute_command(s);
-
-    // vector<string> output;
-    // output = InputOutputIdentifier("ls -l > out.txt");
-    // cout<<output[0]<<endl;
-    // cout<<output[1]<<endl;
-    // cout<<output[2]<<endl;
-    // cout<<endl;
-    // output = InputOutputIdentifier("ls -l < in.txt");
-    // cout<<output[0]<<endl;
-    // cout<<output[1]<<endl;
-    // cout<<output[2]<<endl;
-    // cout<<endl;
-    // output = InputOutputIdentifier("ls -l < in.txt > out.txt");
-    // cout<<output[0]<<endl;
-    // cout<<output[1]<<endl;
-    // cout<<output[2]<<endl;
-    // cout<<endl;
-    // output = InputOutputIdentifier("ls -l");
-    // cout<<output[0]<<endl;
-    // cout<<output[1]<<endl;
-    // cout<<output[2]<<endl;
     return 0;
 }

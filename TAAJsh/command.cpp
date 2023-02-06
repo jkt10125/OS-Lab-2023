@@ -5,6 +5,7 @@
 #include <fcntl.h>
 using namespace std;
 
+
 Command::Command(const string & __str): command(__str), infd(STDIN_FILENO), ofd(STDOUT_FILENO){
     parse();
 }
@@ -65,7 +66,7 @@ void Command::set_fd(){
     }
 
     if(!ofile.empty()){
-        if((ofd = open(ofile.c_str(), O_WRONLY)) < 0){
+        if((ofd = open(ofile.c_str(), O_WRONLY|O_CREAT)) < 0){
             perror("open() failed");
             exit(1);
         }
