@@ -15,6 +15,10 @@ int main() {
 
         shellPrompt();
         string input = ReadLine();
+        trim(input);
+        if(input.empty()){
+            continue;
+        }
         pid_t pid = fork();
         if (pid == 0) {
             Command cmd(input);

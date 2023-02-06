@@ -134,7 +134,7 @@ void shellPrompt(){
         gethostname(hname, 256);
         getcwd(cdir, 256);
         
-        std::cout << "\033[1;32m" << uname << "@" << hname << ":" << "\033[1;33m" << cdir << "\033[0m" << "$ ";
+        std::cout << "\r\n" << "\033[1;32m" << uname << "@" << hname << ":" << "\033[1;33m" << cdir << "\033[0m" << "$ ";
         fflush(stdout);
 }
 
@@ -145,6 +145,7 @@ void execute_command(std::vector<std::string> command){
         arr[i] = (char*)command[i].c_str();
     }
     arr[command.size()]=NULL;
-    execvp(arr[0], arr); // Executing the command.
+    execvp(arr[0], arr);
+    std::cerr<<"Error in executing command";
     exit(0);
 }
