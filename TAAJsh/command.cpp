@@ -1,5 +1,6 @@
 #include "./command.hpp"
 extern vector<string> split(string& , char );
+extern void trim(string & __str);
 
 #include <unistd.h>
 #include <fcntl.h>
@@ -38,6 +39,8 @@ void Command::parse(){
         tokens[1] = "";
         tokens[2] = "";
     }
+    trim(tokens[1]);
+    trim(tokens[2]);
     infile = tokens[1];
     ofile = tokens[2];
     args = split(tokens[0], ' ');
