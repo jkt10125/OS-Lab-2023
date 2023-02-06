@@ -6,6 +6,8 @@
 #include <string.h>
 #include <sys/wait.h>
 
+#include <vector>
+#include <sstream>
 using namespace std;
 
 struct termios orig_termios;
@@ -32,6 +34,35 @@ void die(const string s) {
 
 const int MAXCHAR = 100;
 const int MAXARGS = 100;
+// Trims leading and trailing whitespaces of a string
+void trim(string& str) {
+    int i = 0;
+    while (i < static_cast<int>(str.length()) && str[i] == ' ') {
+        i++;
+    }
+    str = str.substr(i);
+    while (!str.empty() && str.back() == ' ') {
+        str.pop_back();
+    }
+}
+
+// Splits an input string on the basis of a delimiter
+vector<string> split(string& str, char delim) {
+    vector<string> tokens;
+    stringstream ss(str);
+    
+    string tmp;
+    while (getline(ss, tmp, delim)) {
+        trim(tmp);
+        if(!tmp.empty())
+            tokens.push_back(tmp);
+    }
+    return tokens;
+}
+
+int main()
+{
+    enableRawMode();
 
 int main() {
     enableRawMode();
@@ -44,6 +75,12 @@ int main() {
         
         cout << "\033[1;32m" << uname << "@" << hname << ":" << "\033[1;33m" << cdir << "\033[0m" << "$ ";
         fflush(stdout);
+        // cout << u8"\u276f" << endl;
+        fgets(input, MAX_LINE, stdin);
+        // cin.getline(input, MAX_LINE, '\r');
+        // getchar();
+        // cout<<input<<endl;
+        input[strcspn(input, "\n")] = 0;
 
         char input[MAXCHAR];
         char *args[MAXARGS];
@@ -69,6 +106,7 @@ int main() {
         else {
             int status;
             waitpid(pid, &status, 0);
+            if(WIFEXITED(status))
         }
     }
 

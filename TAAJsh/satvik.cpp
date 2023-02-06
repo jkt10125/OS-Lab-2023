@@ -305,75 +305,75 @@ void decrease_child(int signal)
 // This function handles the process related to multiWatch command. Here we keep a watch on file changes with the help
 // of inotify library. Separate child processes are created with the help of fork command, and file descriptor for these are stored in order
 // to get the output from each command as asked in the assignment. From this the output is printed in the required format.
-void handleMultiWatch(string s)
-{
-    vector<string> commands = split(s.substr(10), '"');
-    inotifyd = inotify_init();
-    vector<int> readDescriptor;
-    fileNames.clear();
-    map<int, int> watch2File;
-    child_count+=commands.size();
-    signal (SIGCHLD, decrease_child);
-    for(int i=0;i<commands.size();i++) 
-    {
-        int temp = fork();
-        if(temp==0)
-        {
-            auto pid = getpid();
-            string fin = commands[i] + " > .temp." + to_string(pid) + ".txt";
-            processInputCommand(fin);
-            exit(0);
-        }
-        else 
-        {
-            string fileName = ".temp." + to_string(temp) + ".txt"; // File name according to the format given.
-            fileNames.push_back(fileName); // Storing the file name.
-            readDescriptor.push_back(open(fileName.c_str(), O_CREAT | O_RDONLY, 0666)); // opening the file for reading.
-            int desc = inotify_add_watch(inotifyd, fileName.c_str(), IN_MODIFY); // watching the file for any changes.
-            watch2File[desc] = i;
-        }
-    }
-    while(true)
-    {
-        char buffer[4096]__attribute__ ((aligned(__alignof__(struct inotify_event))));
-        if(child_count==0) 
-        {
-            close(inotifyd);
-            for(int i=0;i<fileNames.size();i++) {
-                int t=remove(fileNames[i].data());
-            }
-            break;
-        }
-        int length = read(inotifyd, buffer, sizeof(buffer));
-        if(length<=0 || child_count==0) break;
-        int i=0;
-        // Getting the outputs in the parent function
-        while(i<length)
-        {
-            struct inotify_event *event = (struct inotify_event *)&buffer[i];
-            string output="";
-            int index=-1;
-            if(event->mask & IN_MODIFY)
-            {
-                int watchDesc = event->wd;
-                index = watch2File[watchDesc];
-                char read_buffer[4096];
-                while(read(readDescriptor[index], read_buffer, 4095)>0){
-                    output+=string(read_buffer);
-                    bzero(&read_buffer, sizeof(read_buffer));
-                }
-            }
-            if(!output.empty() && index!=-1)
-            {
-                cout<<commands[index]<<", "<<time(NULL)<<" : "<<endl;
-                cout<<"<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-"<<endl;
-                cout<<output;
-                cout<<"->->->->->->->->->->->->->->->->->->->"<<endl<<endl;
-            }
-            i += sizeof(struct inotify_event) + event->len;
-        }
-    }
-}
+// void handleMultiWatch(string s)
+// {
+//     vector<string> commands = split(s.substr(10), '"');
+//     inotifyd = inotify_init();
+//     vector<int> readDescriptor;
+//     fileNames.clear();
+//     map<int, int> watch2File;
+//     child_count+=commands.size();
+//     signal (SIGCHLD, decrease_child);
+//     for(int i=0;i<commands.size();i++) 
+//     {
+//         int temp = fork();
+//         if(temp==0)
+//         {
+//             auto pid = getpid();
+//             string fin = commands[i] + " > .temp." + to_string(pid) + ".txt";
+//             processInputCommand(fin);
+//             exit(0);
+//         }
+//         else 
+//         {
+//             string fileName = ".temp." + to_string(temp) + ".txt"; // File name according to the format given.
+//             fileNames.push_back(fileName); // Storing the file name.
+//             readDescriptor.push_back(open(fileName.c_str(), O_CREAT | O_RDONLY, 0666)); // opening the file for reading.
+//             int desc = inotify_add_watch(inotifyd, fileName.c_str(), IN_MODIFY); // watching the file for any changes.
+//             watch2File[desc] = i;
+//         }
+//     }
+//     while(true)
+//     {
+//         char buffer[4096]__attribute__ ((aligned(__alignof__(struct inotify_event))));
+//         if(child_count==0) 
+//         {
+//             close(inotifyd);
+//             for(int i=0;i<fileNames.size();i++) {
+//                 int t=remove(fileNames[i].data());
+//             }
+//             break;
+//         }
+//         int length = read(inotifyd, buffer, sizeof(buffer));
+//         if(length<=0 || child_count==0) break;
+//         int i=0;
+//         // Getting the outputs in the parent function
+//         while(i<length)
+//         {
+//             struct inotify_event *event = (struct inotify_event *)&buffer[i];
+//             string output="";
+//             int index=-1;
+//             if(event->mask & IN_MODIFY)
+//             {
+//                 int watchDesc = event->wd;
+//                 index = watch2File[watchDesc];
+//                 char read_buffer[4096];
+//                 while(read(readDescriptor[index], read_buffer, 4095)>0){
+//                     output+=string(read_buffer);
+//                     bzero(&read_buffer, sizeof(read_buffer));
+//                 }
+//             }
+//             if(!output.empty() && index!=-1)
+//             {
+//                 cout<<commands[index]<<", "<<time(NULL)<<" : "<<endl;
+//                 cout<<"<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-<-"<<endl;
+//                 cout<<output;
+//                 cout<<"->->->->->->->->->->->->->->->->->->->"<<endl<<endl;
+//             }
+//             i += sizeof(struct inotify_event) + event->len;
+//         }
+//     }
+// }
 
 int main()
 {
