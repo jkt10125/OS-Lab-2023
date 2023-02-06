@@ -5,13 +5,14 @@
 #include <vector>
 class Command{
     public:
-        string command;
-        vector<string> args;
+        std::string command;
+        std::vector<std::string> args;
         pid_t pid;
-        string infile, ofile;
+        std::string infile, ofile;
         int infd, ofd;
         
-        Command(const string & __str);
+        Command(const std::string & __str);
+        ~Command();
         void parse();
         void set_fd();
 };
