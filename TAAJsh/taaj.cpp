@@ -8,6 +8,8 @@ using namespace std;
 const int MAXCHAR = 100;
 const int MAXARGS = 100;
 
+pid_t pid;
+
 int main() {
     enableRawMode();
 

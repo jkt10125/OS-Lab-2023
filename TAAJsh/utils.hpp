@@ -6,9 +6,6 @@
 
 #define CTRL_KEY(k) ((k)&0x1f)
 
-struct termios orig_termios;
-pid_t pid;
-
 enum editorKey
 {
     TABLINE = 9,

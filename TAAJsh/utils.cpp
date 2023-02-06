@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <termios.h>
 
+struct termios orig_termios;
+
 // Trims leading and trailing whitespaces of a string
 void trim(std::string &str) {
     int i = 0;
@@ -45,7 +47,7 @@ std::string ReadLine() {
                 arg.pop_back();
             }
         }
-        else if (c == TABLINE){
+        else if (c == TABLINE) {
 
         }
         else {
@@ -102,7 +104,7 @@ int editorReadKey() {
 void processCtrl(char c) {
     switch(c) {
         case CTRL_KEY('c'):
-            if (pid == 0) exit(0);
+            // if (pid == 0) exit(0);
             break;
         case CTRL_KEY('z'):
         case CTRL_KEY('d'):
