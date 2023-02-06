@@ -41,4 +41,7 @@ void shellPrompt();
 //Function to execute commands 
 void execute_command(std::vector<std::string> command);
 
+
+std::vector<std::string> expand_wildcards(const std::vector<std::string> &args);
+
 #endif

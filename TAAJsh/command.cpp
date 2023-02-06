@@ -50,7 +50,7 @@ void Command::parse(){
     trim(tokens[2]);
     infile = tokens[1];
     ofile = tokens[2];
-    args = split(tokens[0], ' ');
+    args = expand_wildcards(split(tokens[0], ' '));
 }
 
 void Command::set_fd(){
