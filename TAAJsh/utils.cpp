@@ -34,13 +34,19 @@ std::string ReadLine() {
     int c = editorReadKey();
     std::string arg;
     while (true) {
-        if (c == NEWLINE) break;
+        if (c == NEWLINE){
+            std::cout<<std::endl;
+            break;
+        }
         processCtrl(c);
         if (c == BACKSPACE) {
             if (!arg.empty()) {
                 std::cout << "\b \b";
                 arg.pop_back();
             }
+        }
+        else if (c == TABLINE){
+
         }
         else {
             std::cout << (char) c;
