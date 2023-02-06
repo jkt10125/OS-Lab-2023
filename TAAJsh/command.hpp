@@ -2,7 +2,11 @@
 #define COMMAND_HPP
 #include <iostream>
 #include <string>
+#include <bits/stdc++.h>
 #include <vector>
+
+
+
 class Command{
     public:
         std::string command;

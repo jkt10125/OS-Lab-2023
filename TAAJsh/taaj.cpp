@@ -8,6 +8,9 @@ using namespace std;
 
 struct termios orig_termios;
 
+const int MAXCHAR = 100;
+const int MAXARGS = 100;
+
 void disableRawMode() {
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
 }
@@ -25,6 +28,16 @@ void enableRawMode() {
 
 void die(const string s) {
     perror(s.c_str());
+    exit(0);
+}
+//Function to execute commands 
+void execute_command(vector<string> command){
+    char * arr[command.size()+1];
+    for(int i = 0 ; i < command.size() ; i++){
+        arr[i] = (char*)command[i].c_str();
+    }
+    arr[command.size()]=NULL;
+    execvp(arr[0], arr); // Executing the command.
     exit(0);
 }
 
@@ -63,6 +76,44 @@ void trim(string &str) {
     while (!str.empty() && str.back() == ' ') {
         str.pop_back();
     }
+}
+
+/**
+ * @brief Identifies the input and output files from the command
+ * 
+ * @param str 
+ * @return vector<string> 
+ */
+vector<string> InputOutputIdentifier(string& str) {
+    bool output = (str.find('>')!=string::npos);
+    bool input = (str.find('<')!=string::npos);
+    vector<string> tokens(3);
+
+    if(input && output){
+        int pos1 = str.find('<');
+        int pos2 = str.find('>');
+        tokens[0] = str.substr(0, pos1);
+        tokens[1] = str.substr(pos1+1, pos2-pos1-1);
+        tokens[2] = str.substr(pos2+1);
+    }
+    else if(input){
+        int pos = str.find('<');
+        tokens[0] = str.substr(0, pos);
+        tokens[1] = str.substr(pos+1);
+        tokens[2] = "";
+    }
+    else if(output){
+        int pos = str.find('>');
+        tokens[0] = str.substr(0, pos);
+        tokens[1] = "";
+        tokens[2] = str.substr(pos+1);
+    }
+    else{
+        tokens[0] = str;
+        tokens[1] = "";
+        tokens[2] = "";
+    }
+    return tokens;
 }
 
 // Splits an input string on the basis of a delimiter
