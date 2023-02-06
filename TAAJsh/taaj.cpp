@@ -6,10 +6,22 @@ using namespace std;
 
 #define CTRL_KEY(k) ((k) & 0x1f)
 
-struct termios orig_termios;
+enum editorKey {
+    TABLINE = 9,
+    NEWLINE = 13,
+    BACKSPACE = 127,
+    ARROW_LEFT = 1000,
+    ARROW_RIGHT,
+    ARROW_UP,
+    ARROW_DOWN
+};
 
-const int MAXCHAR = 100;
-const int MAXARGS = 100;
+void die(const string s) {
+    perror(s.c_str());
+    exit(0);
+}
+
+struct termios orig_termios;
 
 void disableRawMode() {
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
@@ -20,16 +32,90 @@ void enableRawMode() {
     atexit(disableRawMode);
 
     struct termios raw = orig_termios;
-    raw.c_iflag &= ~(IXON);
-    raw.c_lflag &= ~(IEXTEN | ICANON | ISIG);
+    raw.c_iflag &= ~(ICRNL | IXON);
+    raw.c_oflag &= ~(OPOST);
+    raw.c_lflag &= ~(ECHO | IEXTEN | ICANON | ISIG);
 
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
 
-void die(const string s) {
-    perror(s.c_str());
-    exit(0);
+int editorReadKey() {
+    int nread;
+    char c;
+    while ((nread = read(STDIN_FILENO, &c, 1)) != 1) {
+        if (nread == -1 && errno != EAGAIN) die("read");
+    }
+
+    if (c == '\x1b') {
+        char seq[3];
+        if (read(STDIN_FILENO, &seq[0], 1) != 1) return '\x1b';
+        if (read(STDIN_FILENO, &seq[1], 1) != 1) return '\x1b';
+        if (seq[0] == '[') {
+            if (seq[1] >= '0' && seq[1] <= '9') {
+                if (read(STDIN_FILENO, &seq[2], 1) != 1) return '\x1b';
+                if (seq[2] == '~') {
+                    switch (seq[1]) {
+                        case '3': return BACKSPACE;
+                        default: return '\x1b';
+                    }
+                }
+            }
+            else {
+                switch (seq[1]) {
+                    case 'A': return ARROW_UP;
+                    case 'B': return ARROW_DOWN;
+                    case 'C': return ARROW_RIGHT;
+                    case 'D': return ARROW_LEFT;
+                    default: return '\x1b';
+                }
+            }
+        }
+        return '\x1b';
+    }
+
+    if (c == '\t') return TABLINE;
+    if (c == '\n') return NEWLINE;
+
+    return c;
 }
+
+// Ctrl key press handler
+void processCtrl(char c) {
+    switch(c) {
+        case CTRL_KEY('c'):
+        case CTRL_KEY('z'):
+        case CTRL_KEY('d'):
+            exit(0);
+        case CTRL_KEY('m'):
+        default: 
+            break;
+    }
+}
+
+// Sends one line in the form of a string
+string ReadLine() {
+    int c = editorReadKey();
+    string arg;
+    while (true) {
+        if (c == NEWLINE) break;
+        processCtrl(c);
+        if (c == BACKSPACE) {
+            if (!arg.empty()) {
+                cout << "\b \b";
+                arg.pop_back();
+            }
+        }
+        else {
+            cout << (char) c;
+            arg.push_back(c);
+        }
+        fflush(stdout);
+        c = editorReadKey();
+    }
+    return arg;
+}
+
+
 //Function to execute commands 
 void execute_command(vector<string> command){
     char * arr[command.size()+1];
@@ -43,28 +129,6 @@ void execute_command(vector<string> command){
 
 const int MAXCHAR = 100;
 const int MAXARGS = 100;
-
-void processCtrl(char c) {
-    switch(c) {
-        case CTRL_KEY('c'):
-            exit(0);
-            break;
-        default: 
-            break;
-    }
-}
-
-string ReadLine() {
-    char c;
-    cin >> c;
-    string arg;
-    while (c != '\n') {
-        processCtrl(c);
-        arg.push_back(c);
-        cin >> c;
-    }
-    return arg;
-}
 
 // Trims leading and trailing whitespaces of a string
 void trim(string &str) {
