@@ -36,4 +36,7 @@ void enableRawMode();
 
 void shellPrompt();
 
+//Function to execute commands 
+void execute_command(std::vector<std::string> command);
+
 #endif

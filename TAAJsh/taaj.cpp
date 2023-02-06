@@ -5,19 +5,6 @@
 #include "./command.hpp"
 using namespace std;
 
-
-
-//Function to execute commands 
-void execute_command(vector<string> command){
-    char * arr[command.size()+1];
-    for(int i = 0 ; i < command.size() ; i++){
-        arr[i] = (char*)command[i].c_str();
-    }
-    arr[command.size()]=NULL;
-    execvp(arr[0], arr); // Executing the command.
-    exit(0);
-}
-
 const int MAXCHAR = 100;
 const int MAXARGS = 100;
 

@@ -137,3 +137,14 @@ void shellPrompt(){
         std::cout << "\033[1;32m" << uname << "@" << hname << ":" << "\033[1;33m" << cdir << "\033[0m" << "$ ";
         fflush(stdout);
 }
+
+//Function to execute commands 
+void execute_command(std::vector<std::string> command){
+    char * arr[command.size()+1];
+    for(int i = 0 ; i < command.size() ; i++){
+        arr[i] = (char*)command[i].c_str();
+    }
+    arr[command.size()]=NULL;
+    execvp(arr[0], arr); // Executing the command.
+    exit(0);
+}
