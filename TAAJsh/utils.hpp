@@ -4,7 +4,7 @@
 #include <vector>
 #include <termios.h>
 
-#define CTRL_KEY(k) ((k)&0x1f)
+#define CTRL_KEY(k) ((k) & 0x1f)
 
 enum editorKey
 {

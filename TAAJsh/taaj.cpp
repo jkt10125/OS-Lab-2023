@@ -3,6 +3,7 @@
 #include <bits/stdc++.h>
 #include "./utils.hpp"
 #include "./pipeline.hpp"
+
 using namespace std;
 
 const int MAXCHAR = 100;

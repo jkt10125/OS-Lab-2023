@@ -36,22 +36,23 @@ std::string ReadLine() {
     int c = editorReadKey();
     std::string arg;
     while (true) {
-        if (c == NEWLINE){
-            std::cout<<std::endl;
+        if (c == NEWLINE) {
+            // std::cout << std::endl;
             break;
         }
         processCtrl(c);
         if (c == BACKSPACE) {
+            std::cout << "\b\b  \b\b";
             if (!arg.empty()) {
                 std::cout << "\b \b";
                 arg.pop_back();
             }
         }
         else if (c == TABLINE) {
-
+            std::cout << "\b \b";
         }
         else {
-            std::cout << (char) c;
+            // std::cout << (char) c;
             arg.push_back(c);
         }
         fflush(stdout);
@@ -105,6 +106,7 @@ void processCtrl(char c) {
     switch(c) {
         case CTRL_KEY('c'):
             // if (pid == 0) exit(0);
+
             break;
         case CTRL_KEY('z'):
         case CTRL_KEY('d'):
@@ -131,7 +133,7 @@ void enableRawMode() {
     struct termios raw = orig_termios;
     raw.c_iflag &= ~(IXON);
     // raw.c_oflag &= ~(OPOST);
-    raw.c_lflag &= ~(ECHO | IEXTEN | ICANON | ISIG);
+    raw.c_lflag &= ~(IEXTEN | ICANON | ISIG);
 
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
@@ -148,12 +150,12 @@ void shellPrompt(){
 
 //Function to execute commands 
 void execute_command(std::vector<std::string> command){
-    char * arr[command.size()+1];
-    for(int i = 0 ; i < command.size() ; i++){
+    char * arr[command.size() + 1];
+    for(int i = 0; i < command.size(); i++){
         arr[i] = (char*)command[i].c_str();
     }
     arr[command.size()]=NULL;
     execvp(arr[0], arr);
-    std::cerr<<"Error in executing command";
+    std::cerr << "Error in executing command";
     exit(0);
 }
