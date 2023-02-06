@@ -5,8 +5,7 @@ extern vector<string> split(string& , char );
 #include <fcntl.h>
 using namespace std;
 
-Command::Command(const string & __str){
-    command = __str;
+Command::Command(const string & __str): command(__str), infd(STDIN_FILENO), ofd(STDOUT_FILENO){
     parse();
     set_fd();
 }
@@ -57,11 +56,11 @@ void Command::set_fd(){
     }
 
     if(!ofile.empty()){
-        if((infd = open(ofile.c_str(), O_WRONLY)) < 0){
+        if((ofd = open(ofile.c_str(), O_WRONLY)) < 0){
             perror("open() failed");
             exit(1);
         }
-        if(dup2(infd, STDOUT_FILENO) < 0){
+        if(dup2(ofd, STDOUT_FILENO) < 0){
             perror("dup2() failed");
             exit(1);
         }
