@@ -1,6 +1,8 @@
 #include "./command.hpp"
 extern vector<string> split(string& , char );
 
+#include <unistd.h>
+#include <fcntl.h>
 using namespace std;
 
 Command::Command(const string & __str){
@@ -41,6 +43,27 @@ void Command::parse(){
     ofile = tokens[2];
     args = split(tokens[0], ' ');
 }
-void Command::set_fd(){
 
+void Command::set_fd(){
+    if(!infile.empty()){
+        if((infd = open(infile.c_str(), O_RDONLY)) < 0){
+            perror("open() failed");
+            exit(1);
+        }
+        if(dup2(infd, STDIN_FILENO) < 0){
+            perror("dup2() failed");
+            exit(1);
+        }
+    }
+
+    if(!ofile.empty()){
+        if((infd = open(ofile.c_str(), O_WRONLY)) < 0){
+            perror("open() failed");
+            exit(1);
+        }
+        if(dup2(infd, STDOUT_FILENO) < 0){
+            perror("dup2() failed");
+            exit(1);
+        }
+    }
 }
