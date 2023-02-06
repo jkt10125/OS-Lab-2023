@@ -6,7 +6,6 @@
 #include <vector>
 
 
-
 class Command{
     public:
         std::string command;
