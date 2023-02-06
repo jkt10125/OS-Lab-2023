@@ -6,31 +6,6 @@
 using namespace std;
 
 
-// Trims leading and trailing whitespaces of a string
-void trim(string &str) {
-    int i = 0;
-    while (i < str.size() && str[i] == ' ') {
-        i++;
-    }
-    str = str.substr(i);
-    while (!str.empty() && str.back() == ' ') {
-        str.pop_back();
-    }
-}
-
-// Splits an input string on the basis of a delimiter
-vector<string> split(string& str, char delim) {
-    vector<string> tokens;
-    stringstream ss(str);
-    
-    string tmp;
-    while (getline(ss, tmp, delim)) {
-        trim(tmp);
-        if(!tmp.empty())
-            tokens.push_back(tmp);
-    }
-    return tokens;
-}
 Command::Command(const string & __str): command(__str), infd(STDIN_FILENO), ofd(STDOUT_FILENO){
     parse();
 }
@@ -79,8 +54,6 @@ void Command::parse(){
 }
 
 void Command::set_fd(){
-    cout<<"infile: "<<infile<<endl;
-    cout<<"ofile: "<<ofile<<endl;
     if(!infile.empty()){
         if((infd = open(infile.c_str(), O_RDONLY)) < 0){
             perror("open() failed");
