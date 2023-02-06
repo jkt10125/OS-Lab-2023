@@ -1,5 +1,7 @@
 #include <./pipeline.hpp>
-#include <./utils.hpp>
+extern vector<string> split(string& str, char delim);
+extern void trim(string &str);
+
 using namespace std;
 
 Pipeline::Pipeline(const string &  __str): command(__str){
