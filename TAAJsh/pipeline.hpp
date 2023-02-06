@@ -1,6 +1,6 @@
 #ifndef PIPELINE_HPP
 #define PIPELINE_HPP
-#include<iostream>
+#include <iostream>
 #include <string>
 #include <vector>
 

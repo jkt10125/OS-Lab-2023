@@ -1,6 +1,5 @@
 #include "./command.hpp"
-extern vector<string> split(string& , char );
-extern void trim(string & __str);
+#include "./utils.hpp"
 
 #include <unistd.h>
 #include <fcntl.h>
@@ -9,6 +8,14 @@ using namespace std;
 Command::Command(const string & __str): command(__str), infd(STDIN_FILENO), ofd(STDOUT_FILENO){
     parse();
     set_fd();
+}
+Command::~Command(){
+    if(infd!=STDIN_FILENO){
+        close(infd);
+    }
+    if(ofd != STDOUT_FILENO){
+        close(ofd);
+    }
 }
 void Command::parse(){
     bool output = (command.find('>')!=string::npos);
