@@ -96,6 +96,8 @@ int editorReadKey() {
 void processCtrl(char c) {
     switch(c) {
         case CTRL_KEY('c'):
+            if (pid == 0) exit(0);
+            break;
         case CTRL_KEY('z'):
         case CTRL_KEY('d'):
             exit(0);
@@ -109,8 +111,6 @@ void die(const std::string & s) {
     perror(s.c_str());
     exit(0);
 }
-
-struct termios orig_termios;
 
 void disableRawMode() {
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);

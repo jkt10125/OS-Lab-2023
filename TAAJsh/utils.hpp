@@ -2,7 +2,12 @@
 #define UTILS_HPP
 #include <iostream>
 #include <vector>
+#include <termios.h>
+
 #define CTRL_KEY(k) ((k)&0x1f)
+
+struct termios orig_termios;
+pid_t pid;
 
 enum editorKey
 {

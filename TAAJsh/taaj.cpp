@@ -19,7 +19,7 @@ int main() {
         if(input.empty()){
             continue;
         }
-        pid_t pid = fork();
+        pid = fork();
         if (pid == 0) {
             Pipeline p(input);
             p.execute();
