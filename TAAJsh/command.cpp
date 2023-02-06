@@ -7,7 +7,6 @@ using namespace std;
 
 Command::Command(const string & __str): command(__str), infd(STDIN_FILENO), ofd(STDOUT_FILENO){
     parse();
-    set_fd();
 }
 Command::~Command(){
     if(infd!=STDIN_FILENO){
