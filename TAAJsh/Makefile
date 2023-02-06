@@ -4,3 +4,6 @@ taaj.o: taaj.cpp utils.hpp pipeline.hpp
 utils.o: utils.cpp utils.hpp
 command.o: command.cpp command.hpp utils.hpp
 pipeline.o: pipeline.cpp pipeline.hpp command.hpp utils.hpp
+
+clean: 
+	rm -f *.o taaj
