@@ -2,7 +2,7 @@
 #include <sys/wait.h>
 #include <bits/stdc++.h>
 #include "./utils.hpp"
-#include "./command.hpp"
+#include "./pipeline.hpp"
 using namespace std;
 
 const int MAXCHAR = 100;
@@ -21,8 +21,8 @@ int main() {
         }
         pid_t pid = fork();
         if (pid == 0) {
-            Command cmd(input);
-            execute_command(cmd.args);
+            Pipeline p(input);
+            p.execute();
         }
         else if (pid < 0) {
             die("Error in forking!");
