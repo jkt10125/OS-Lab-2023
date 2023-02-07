@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <termios.h>
+#include "./history.hpp"
 
 #define CTRL_KEY(k) ((k) & 0x1f)
 
@@ -23,7 +24,7 @@ void trim(std::string &str);
 std::vector<std::string> split(std::string &str, char delim);
 
 // Sends one line in the form of a string
-std::string ReadLine();
+std::string ReadLine(History &);
 
 int editorReadKey();
 

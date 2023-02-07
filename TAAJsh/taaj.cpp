@@ -3,6 +3,7 @@
 #include <bits/stdc++.h>
 #include "./utils.hpp"
 #include "./pipeline.hpp"
+#include "./history.hpp"
 
 using namespace std;
 
@@ -11,29 +12,29 @@ const int MAXARGS = 100;
 
 pid_t pid;
 
-int main() {
+int main()
+{
     enableRawMode();
-
-    while (true) {
-
+    History history;
+    while (true)
+    {
+        history.resetHistory();
         shellPrompt();
-        string input = ReadLine();
+        string input = ReadLine(history);
         trim(input);
-        if(input.empty()){
+        if (input.empty())
+        {
             continue;
         }
-        pid = fork();
-        if (pid == 0) {
-            Pipeline p(input);
-            p.execute();
+        history.addHistory(input);
+        if (input == "exit")
+            break;
+        if (input.substr(0, 2) == "cd")
+        {
+            continue;
         }
-        else if (pid < 0) {
-            die("Error in forking!");
-        }
-        else {
-            int status;
-            waitpid(pid, &status, 0);
-        }
+        Pipeline p(input);
+        p.execute();
     }
 
     return 0;

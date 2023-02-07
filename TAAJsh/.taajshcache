@@ -1,0 +1,9 @@
+exit
+./taaj
+ls -l
+exit
+echo hello
+ls
+exit
+ps
+ls

@@ -1,0 +1,7 @@
+This is c.txt
+/usr/lib/libgraph.a
+/usr/lib/libtcp-portmon.a
+./a.cpp
+./a.out
+./a.txt
+./b.txt

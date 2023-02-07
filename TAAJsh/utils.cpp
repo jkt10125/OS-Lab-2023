@@ -38,7 +38,7 @@ std::vector<std::string> split(std::string &str, char delim)
 }
 
 // Sends one line in the form of a string
-std::string ReadLine()
+std::string ReadLine(History & history)
 {
     int c = editorReadKey();
     std::string arg;
@@ -62,6 +62,12 @@ std::string ReadLine()
         else if (c == TABLINE)
         {
             std::cout << "\b \b";
+        }
+        else if(c==ARROW_UP){
+           std::cerr<<history.getHistory(UP)<<"\n";
+        }
+        else if(c==ARROW_DOWN){
+           std::cerr<<history.getHistory(DOWN)<<"\n";
         }
         else
         {
@@ -226,7 +232,7 @@ std::vector<std::string> expand_wildcards(const std::vector<std::string> &args)
             expanded_args.push_back(arg);
             continue;
         }
-        
+
         glob_t result;
         glob(arg.c_str(), GLOB_TILDE, NULL, &result);
         for (int i = 0; i < result.gl_pathc; i++)
@@ -237,3 +243,4 @@ std::vector<std::string> expand_wildcards(const std::vector<std::string> &args)
     }
     return expanded_args;
 }
+
