@@ -3,25 +3,39 @@
 #include <sys/wait.h>
 void reapProcesses(int signum)
 {
-    while (true) {
+    while (true)
+    {
         int status;
         pid_t pid = waitpid(-1, &status, WNOHANG | WUNTRACED | WCONTINUED);
-        if (pid <= 0) {
+        if (pid <= 0)
+        {
             break;
         }
 
-        Pipeline* pipeline = pipesArr[pid2index[pid]];
+        if (pid2index.find(pid)==pid2index.end())
+        {
+            std::cerr << "Unknown process terminated" << std::endl;
+            if(fgpid==pid) fgpid = 0;
+            break;
+        }
+        Pipeline *pipeline = pipesArr[pid2index[pid]];
 
-        if (WIFSIGNALED(status) || WIFEXITED(status)) {
+        if (WIFSIGNALED(status) || WIFEXITED(status))
+        {
             pipeline->n_alive--;
-        } else if (WIFSTOPPED(status)) {
+        }
+        else if (WIFSTOPPED(status))
+        {
             pipeline->n_alive--;
-        } else if (WIFCONTINUED(status)) {
+        }
+        else if (WIFCONTINUED(status))
+        {
             pipeline->n_alive++;
         }
 
-        if (pipeline->group_pid == fgpid && !WIFCONTINUED(status) && pipeline->n_alive==0) {
-                fgpid = 0;
+        if (pipeline->group_pid == fgpid && !WIFCONTINUED(status) && pipeline->n_alive == 0)
+        {
+            fgpid = 0;
         }
     }
 }
