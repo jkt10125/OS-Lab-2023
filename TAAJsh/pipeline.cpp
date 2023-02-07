@@ -111,9 +111,9 @@ void Pipeline::execute()
     else
     {
         waitForForegroundProcess(fg_pgid);
-        // if (pipesArr.back() == STOPPED) {  // If Ctrl-Z was sent, now send SIGCONT to continue the process immediately in the background
-        //     kill(-fg_pgid, SIGCONT);
-        // }
+        if (isBackgroundProcess) {
+            kill(-fg_pgid, SIGCONT);
+        }
     }
     tcsetpgrp(STDIN_FILENO, getpid());
 }

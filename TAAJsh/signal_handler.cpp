@@ -12,10 +12,11 @@ void reapProcesses(int signum)
             break;
         }
 
-        if (pid2index.find(pid)==pid2index.end())
+        if (pid2index.find(pid) == pid2index.end())
         {
             std::cerr << "Unknown process terminated" << std::endl;
-            if(fgpid==pid) fgpid = 0;
+            if (fgpid == pid)
+                fgpid = 0;
             break;
         }
         Pipeline *pipeline = pipesArr[pid2index[pid]];
@@ -36,6 +37,8 @@ void reapProcesses(int signum)
         if (pipeline->group_pid == fgpid && !WIFCONTINUED(status) && pipeline->n_alive == 0)
         {
             fgpid = 0;
+            if (WIFSTOPPED(status))
+                pipeline->isBackgroundProcess = true;
         }
     }
 }
