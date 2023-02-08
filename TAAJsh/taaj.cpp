@@ -14,16 +14,26 @@ const int MAXARGS = 100;
 pid_t pid;
 
 pid_t fgpid = 0;
+const pid_t rootpid =  getpid();
 std::vector<Pipeline*> pipesArr;
 std::map<pid_t, int> pid2index;
 
 History history;
 
+void ctrlChandler(int sig){
+    if(rootpid!=getpid()) exit(1);
+}
+void ctrlZhandler(int sig){
+    if(rootpid==getpid()) kill(getpid(), SIGCONT);
+    else kill(getpid(), SIGTSTP);
+}
 int main()
 {
     signal(SIGCHLD, reapProcesses);
     signal(SIGTTOU, SIG_IGN);
-    
+    signal(SIGINT, ctrlChandler);
+    signal(SIGTSTP, ctrlZhandler);
+    // enableRawMode();
     while (true)
     {
         history.resetHistory();

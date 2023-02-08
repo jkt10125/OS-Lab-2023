@@ -52,15 +52,14 @@ void Pipeline::execute()
         if (pid==0)
         {
             unblockSIGCHLD();
-
+            signal(SIGINT, SIG_DFL);
+            signal(SIGTSTP, SIG_DFL);
             components[i]->set_fd();
 
             if (i == 0)
             {
                 fg_pgid = getpid();
                 setpgrp();
-                // tcsetpgrp(STDIN_FILENO, fg_pgid);
-                // pipesArr.push_back(this);
             }
             else
             {
