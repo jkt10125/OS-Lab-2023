@@ -1,88 +1,81 @@
-#include <termios.h>
-#include <sys/wait.h>
 #include <bits/stdc++.h>
-#include "command.hpp"
-#include <fcntl.h>
-#include <unistd.h>
-
 using namespace std;
 
-#define CTRL_KEY(k) ((k)&0x1f)
-
-struct termios orig_termios;
-
-const int MAXCHAR = 100;
-const int MAXARGS = 100;
-
-void disableRawMode()
+// Trims leading and trailing whitespaces of a string
+void trim(std::string &str)
 {
-    tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
-}
-
-void enableRawMode()
-{
-    tcgetattr(STDIN_FILENO, &orig_termios);
-    atexit(disableRawMode);
-
-    struct termios raw = orig_termios;
-    raw.c_iflag &= ~(IXON);
-    raw.c_lflag &= ~(IEXTEN | ICANON | ISIG);
-
-    tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
-}
-
-void die(const string s)
-{
-    perror(s.c_str());
-    exit(0);
-}
-// Function to execute commands
-void execute_command(vector<string> command)
-{
-    char *arr[command.size() + 1];
-    for (int i = 0; i < command.size(); i++)
-    {
-        arr[i] = (char *)command[i].c_str();
-    }
-    arr[command.size()] = NULL;
-    execvp(arr[0], arr); // Executing the command.
-    cout << "Error" << endl;
-    exit(0);
-}
-
-int main()
-{
-    // enableRawMode();
     int i = 0;
-    vector<string> commands;
-    commands.push_back("ls -l");
-    commands.push_back("g++ test2.cpp -o test2");
-    commands.push_back("./test2 ok run this");
-    commands.push_back("./test2 < input.txt");
-    commands.push_back("./test2 < input.txt > output.txt");
-    while (i < 5)
+    while (i < str.size() && str[i] == ' ')
     {
-        cout << commands[i] << endl;
-        pid_t pid = fork();
-        if (pid == 0)
-        {
-            Command c(commands[i]);
-            execute_command(c.args);
-        }
-        else if (pid < 0)
-            die("fork");
-        else
-        {
-            if (open("input.txt", O_RDONLY) < 0)
-            {
-                perror("open");
-                exit(0);
-            }
-            int status;
-            waitpid(pid, &status, 0);
-        }
         i++;
     }
+    str = str.substr(i);
+    while (!str.empty() && str.back() == ' ')
+    {
+        str.pop_back();
+    }
+}
 
-    return 0;
+int stringParse(std::string &str, int i, char q) {
+    int j = i + 1;
+    while (true) {
+        if (j >= str.size()) break;
+        if(str[j] == '\\') {
+            j += 2;
+            continue;
+        }
+        if (str[j] == q) break;
+        j++;
+    }
+    if (j >= str.size()) {
+        // die("Wrong Argument!\n");
+    }
+    return j;
+}
+
+// Splits an input string on the basis of a delimiter
+std::vector<std::string> split(std::string &str, char delim)
+{
+    std::vector<std::string> tokens;
+
+    std::string tmp = "";
+
+    for (int i = 0; i < str.size(); i++) {
+        if (str[i] == '"' || str[i] == '\'') {
+            int j = stringParse(str, i, str[i]);
+            tmp += str.substr(i + 1, j - i - 1);
+            i = j;
+        }
+        else if (str[i] == '\\') {
+            tmp.push_back(str[i]);
+            if (i < str.size() - 1) {
+                tmp.push_back(str[++i]);
+            }
+        }
+        else if (str[i] == delim) {
+            tokens.push_back(tmp);
+            tmp = "";
+        }
+        else tmp.push_back(str[i]);
+    }
+
+    if (!tmp.empty()) {
+        tokens.push_back(tmp);
+        tmp = "";
+    }
+
+    for (std::string &s : tokens) {
+        trim(s);
+    }
+
+    return tokens;
+}
+
+int main() {
+    string s;
+    getline(cin, s);
+    auto A = split(s, ' ');
+    for (auto it : A) {
+        cout << it << endl;
+    }
 }
