@@ -1,10 +1,9 @@
 #include "./utils.hpp"
 #include <sstream>
 #include <unistd.h>
-#include <termios.h>
 #include <glob.h>
+#include <readline/readline.h>
 
-struct termios orig_termios;
 
 // Trims leading and trailing whitespaces of a string
 void trim(std::string &str)
@@ -37,127 +36,41 @@ std::vector<std::string> split(std::string &str, char delim)
     return tokens;
 }
 
-// Sends one line in the form of a string
-std::string ReadLine(History & history)
-{
-    int c = editorReadKey();
-    std::string arg;
-    while (true)
-    {
-        if (c == NEWLINE)
-        {
-            // std::cout << std::endl;
-            break;
-        }
-        processCtrl(c);
-        if (c == BACKSPACE)
-        {
-            std::cout << "\b\b  \b\b";
-            if (!arg.empty())
-            {
-                std::cout << "\b \b";
-                arg.pop_back();
-            }
-        }
-        else if (c == TABLINE)
-        {
-            std::cout << "\b \b";
-        }
-        else if(c==ARROW_UP){
-           std::cerr<<history.getHistory(UP)<<"\n";
-        }
-        else if(c==ARROW_DOWN){
-           std::cerr<<history.getHistory(DOWN)<<"\n";
-        }
-        else
-        {
-            // std::cout << (char) c;
-            arg.push_back(c);
-        }
-        fflush(stdout);
-        c = editorReadKey();
-    }
-    return arg;
+int uparrowhandler(int count, int key) {
+    rl_replace_line(history.getHistory(UP).c_str(), 0);
+    rl_redisplay();
+    rl_point = rl_end;
+    return 0;
 }
 
-int editorReadKey()
-{
-    int nread;
-    char c;
-    while ((nread = read(STDIN_FILENO, &c, 1)) != 1)
-    {
-        if (nread == -1 && errno != EAGAIN)
-            die("read");
-    }
-
-    if (c == '\x1b')
-    {
-        char seq[3];
-        if (read(STDIN_FILENO, &seq[0], 1) != 1)
-            return '\x1b';
-        if (read(STDIN_FILENO, &seq[1], 1) != 1)
-            return '\x1b';
-        if (seq[0] == '[')
-        {
-            if (seq[1] >= '0' && seq[1] <= '9')
-            {
-                if (read(STDIN_FILENO, &seq[2], 1) != 1)
-                    return '\x1b';
-                if (seq[2] == '~')
-                {
-                    switch (seq[1])
-                    {
-                    case '3':
-                        return BACKSPACE;
-                    default:
-                        return '\x1b';
-                    }
-                }
-            }
-            else
-            {
-                switch (seq[1])
-                {
-                case 'A':
-                    return ARROW_UP;
-                case 'B':
-                    return ARROW_DOWN;
-                case 'C':
-                    return ARROW_RIGHT;
-                case 'D':
-                    return ARROW_LEFT;
-                default:
-                    return '\x1b';
-                }
-            }
-        }
-        return '\x1b';
-    }
-
-    if (c == '\t')
-        return TABLINE;
-    if (c == '\n')
-        return NEWLINE;
-
-    return c;
+int downarrowhandler(int count, int key) {
+    rl_replace_line(history.getHistory(DOWN).c_str(), 0);
+    rl_redisplay();
+    rl_point = rl_end;
+    return 0;
 }
 
-// Ctrl key press handler
-void processCtrl(char c)
-{
-    switch (c)
-    {
-    case CTRL_KEY('c'):
-        // if (pid == 0) exit(0);
+int ctrlAhandler(int count, int key) {
+    rl_point = 0;
+    return 0;
+}
 
-        break;
-    case CTRL_KEY('z'):
-    case CTRL_KEY('d'):
-        exit(0);
-    case CTRL_KEY('m'):
-    default:
-        break;
-    }
+int ctrlEhandler(int count, int key) {
+    rl_point = rl_end;
+    return 0;
+}
+
+std::string ReadLine() {
+
+    rl_bind_keyseq("\\e[A", uparrowhandler);
+    rl_bind_keyseq("\\e[B", downarrowhandler);
+    rl_bind_keyseq("\\C-h", ctrlAhandler);
+    rl_bind_keyseq("\\C-k", ctrlEhandler);
+    
+    std::string line = readline(shellPrompt().c_str());
+
+
+    return line;
 }
 
 void die(const std::string &s)
@@ -166,36 +79,15 @@ void die(const std::string &s)
     exit(0);
 }
 
-void disableRawMode()
-{
-    tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
-}
-
-void enableRawMode()
-{
-    tcgetattr(STDIN_FILENO, &orig_termios);
-    atexit(disableRawMode);
-
-    struct termios raw = orig_termios;
-    raw.c_iflag &= ~(IXON);
-    // raw.c_oflag &= ~(OPOST);
-    raw.c_lflag &= ~(IEXTEN | ICANON | ISIG);
-
-    tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
-}
-
-void shellPrompt()
+std::string shellPrompt()
 {
     char uname[256], hname[256], cdir[256];
     getlogin_r(uname, 256);
     gethostname(hname, 256);
     getcwd(cdir, 256);
-
-    std::cout << "\r\n"
-              << "\033[1;32m" << uname << "@" << hname << ":"
-              << "\033[1;33m" << cdir << "\033[0m"
-              << "$ ";
-    fflush(stdout);
+    std::string res = "";
+    res = "\r\n\033[1;32m" + std::string(uname) + "@" + std::string(hname) + ":\033[1;33m" + std::string(cdir) + "\033[0m" + "$ ";
+    return res;
 }
 
 // Function to execute commands

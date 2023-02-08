@@ -1,5 +1,5 @@
 taaj: taaj.o utils.o command.o pipeline.o history.o signal_handler.o
-	g++ -Wall taaj.o utils.o command.o pipeline.o signal_handler.o history.o -o taaj
+	g++ -Wall taaj.o utils.o command.o pipeline.o signal_handler.o history.o -o taaj -lreadline
 taaj.o: taaj.cpp utils.hpp pipeline.hpp history.hpp signal_handler.hpp
 utils.o: utils.cpp utils.hpp history.hpp
 command.o: command.cpp command.hpp utils.hpp

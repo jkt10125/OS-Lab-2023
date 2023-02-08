@@ -17,17 +17,17 @@ pid_t fgpid = 0;
 std::vector<Pipeline*> pipesArr;
 std::map<pid_t, int> pid2index;
 
+History history;
+
 int main()
 {
     signal(SIGCHLD, reapProcesses);
     signal(SIGTTOU, SIG_IGN);
-    enableRawMode();
-    History history;
+    
     while (true)
     {
         history.resetHistory();
-        shellPrompt();
-        string input = ReadLine(history);
+        string input = ReadLine();
         trim(input);
         if (input.empty())
         {

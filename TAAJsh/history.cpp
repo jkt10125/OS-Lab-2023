@@ -42,8 +42,18 @@ void History::addHistory(const std::string __str)
 
 string History::getHistory(DIR dir)
 {
-    string temp = arr[index];
-    index = (index + 1) % arr.size();
+    string temp;
+    
+    if (dir == UP) {
+        temp = arr[index];
+        if (index < arr.size() - 1) index++;
+
+    }
+    else if (dir == DOWN) {
+        temp = arr[index];
+        if (index > 0) index--;
+        else temp = "";
+    }
     return temp;
 }
 
