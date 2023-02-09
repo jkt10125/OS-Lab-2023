@@ -8,5 +8,9 @@ history.o: history.cpp history.hpp
 signal_handler.o: signal_handler.cpp signal_handler.hpp 
 flock.o: flock.cpp flock.hpp utils.hpp
 malware_detection.o: malware_detection.cpp malware_detection.hpp
+locker: flock_check.cpp
+	g++ -Wall flock_check.cpp -o locker
+malware: malware_external.cpp
+	g++ -Wall malware_external.cpp -o malware
 clean: 
-	rm -f *.o taaj
+	rm -f *.o taaj locker malware test.txt
