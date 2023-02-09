@@ -5,7 +5,7 @@
 #include <fstream>
 const std::string HISTORY_CACHE = ".taajshcache";
 const int CACHE_SIZE = 1000;
-enum DIR
+enum DIREC
 {
     UP,
     DOWN
@@ -20,7 +20,7 @@ public:
     History();
     ~History();
     void addHistory(const std::string __str);
-    std::string getHistory(DIR dir);
+    std::string getHistory(DIREC dir);
     void resetHistory();
 };
 #endif

@@ -40,7 +40,7 @@ void History::addHistory(const std::string __str)
     arr.push_front(__str);
 }
 
-string History::getHistory(DIR dir)
+string History::getHistory(DIREC dir)
 {
     string temp;
     

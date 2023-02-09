@@ -46,11 +46,12 @@ void Command::parse(){
         tokens[1] = "";
         tokens[2] = "";
     }
+    trim(tokens[0]);
     trim(tokens[1]);
     trim(tokens[2]);
     infile = tokens[1];
     ofile = tokens[2];
-    args = expand_wildcards(split(tokens[0], ' '));
+    args = parseArgs(tokens[0], ' ');
 }
 
 void Command::set_fd(){
