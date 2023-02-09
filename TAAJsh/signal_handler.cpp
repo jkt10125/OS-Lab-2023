@@ -1,6 +1,8 @@
 #include "./signal_handler.hpp"
 #include <signal.h>
 #include <sys/wait.h>
+#include <readline/readline.h>
+
 void reapProcesses(int signum)
 {
     while (true)
@@ -14,7 +16,7 @@ void reapProcesses(int signum)
 
         if (pid2index.find(pid) == pid2index.end())
         {
-            std::cerr << "Unknown process terminated" << std::endl;
+            // std::cerr << "Unknown process terminated" << std::endl;
             if (fgpid == pid)
                 fgpid = 0;
             break;
@@ -72,4 +74,30 @@ void waitForForegroundProcess(pid_t pid)
         sigsuspend(&empty);
     }
     unblockSIGCHLD();
+}
+
+void ctrlChandler(int sig)
+{
+    if (rootpid == getpid())
+    {
+        printf("\n");
+        rl_on_new_line();
+        rl_replace_line("", 0);
+        rl_redisplay();
+    }
+    else
+        kill(getpid(), SIGKILL);
+}
+
+void ctrlZhandler(int sig)
+{
+    if (rootpid == getpid())
+    {
+        printf("\n");
+        rl_on_new_line();
+        rl_replace_line("", 0);
+        rl_redisplay();
+    }
+    else
+        kill(getpid(), SIGTSTP);
 }

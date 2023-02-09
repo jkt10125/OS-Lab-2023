@@ -20,14 +20,16 @@ void trim(std::string &str)
 }
 
 // Splits an input string on the basis of a delimiter
-std::vector<std::string> split(std::string& str, char delim) {
+std::vector<std::string> split(std::string &str, char delim)
+{
     std::vector<std::string> tokens;
     std::stringstream ss(str);
-    
+
     std::string tmp;
-    while (getline(ss, tmp, delim)) {
+    while (getline(ss, tmp, delim))
+    {
         trim(tmp);
-        if(!tmp.empty())
+        if (!tmp.empty())
             tokens.push_back(tmp);
     }
     return tokens;
@@ -66,8 +68,8 @@ std::string ReadLine()
 
     rl_bind_keyseq("\\e[A", uparrowhandler);
     rl_bind_keyseq("\\e[B", downarrowhandler);
-    rl_bind_keyseq("\\C-h", ctrlAhandler);
-    rl_bind_keyseq("\\C-k", ctrlEhandler);
+    rl_bind_keyseq("\\C-a", ctrlAhandler);
+    rl_bind_keyseq("\\C-e", ctrlEhandler);
 
     char *buff = readline(shellPrompt().c_str());
     if (buff == NULL)
@@ -77,11 +79,6 @@ std::string ReadLine()
     return input;
 }
 
-void die(const std::string &s)
-{
-    perror(s.c_str());
-    exit(0);
-}
 
 std::string shellPrompt()
 {
@@ -179,9 +176,10 @@ std::vector<std::string> parseArgs(std::string &str, char delim)
 
             if (j >= str.length())
             {
-                std::cerr << "Error! No matching quotes found" << std::endl;
+                tokens.push_back(str.substr(i));
             }
-            tokens.push_back(str.substr(i + 1, j - i - 1));
+            else
+                tokens.push_back(str.substr(i + 1, j - i - 1));
             tmp = "";
             i = j;
         }

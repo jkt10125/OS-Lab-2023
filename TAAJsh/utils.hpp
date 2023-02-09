@@ -9,6 +9,7 @@ extern History history;
 
 // Trims leading and trailing whitespaces of a string
 void trim(std::string &str);
+
 // Splits an input string on the basis of a delimiter
 std::vector<std::string> split(std::string &str, char delim);
 
@@ -22,7 +23,6 @@ int downarrowhandler(int count, int key);
 int ctrlAhandler(int count, int key);
 int ctrlEhandler(int count, int key);
 
-void die(const std::string &s);
 
 std::string shellPrompt();
 

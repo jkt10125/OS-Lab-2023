@@ -15,18 +15,22 @@ void lockUnLock() {
     std::cout << "open file " << path << std::endl;
     std::cout << "Please input a number to lock the file" << path << std::endl;
     scanf("%d", &i);
-    if (flock(fd, 2) == 0) {
+    if (flock(fd, LOCK_EX) == 0) {
       std::cout << "The file was locked " << std::endl;
     } else {
       std::cout << "The file was not locked " << std::endl;
     }
     std::cout << "please input a number to unlock the file " << std::endl;
     scanf("%d", &i);
-    if (flock(fd, 8) == 0) {
+    if (flock(fd, LOCK_UN) == 0) {
       std::cout << "The file was unlocked. " << std::endl;
     } else {
       std::cout << "The file was no unlocked. " << std::endl;
     }
+
+    std::cout << "The file will be closed in 30 seconds."<<std::endl;
+    sleep(30);
+
     close(fd);
   } else {
     std::cout << "Cannot open file " << path << std::endl;

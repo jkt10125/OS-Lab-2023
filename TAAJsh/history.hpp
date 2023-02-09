@@ -3,8 +3,9 @@
 #include <iostream>
 #include <deque>
 #include <fstream>
-const std::string HISTORY_CACHE = ".taajshcache";
-const int CACHE_SIZE = 1000;
+#define CACHE_SIZE  1000
+#define HISTORY_CACHE  ".taajshcache"
+
 enum DIREC
 {
     UP,
@@ -14,13 +15,13 @@ enum DIREC
 class History
 {
     std::deque<std::string> arr;
-    size_t index;
-
+    int index;
 public:
     History();
     ~History();
     void addHistory(const std::string __str);
     std::string getHistory(DIREC dir);
     void resetHistory();
+    void updateHistory();
 };
 #endif

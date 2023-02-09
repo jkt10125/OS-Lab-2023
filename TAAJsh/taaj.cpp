@@ -1,50 +1,20 @@
-#include <termios.h>
-#include <sys/wait.h>
-#include <bits/stdc++.h>
+#include <iostream>
+#include <signal.h>
+#include <unistd.h>
 #include "./utils.hpp"
 #include "./pipeline.hpp"
 #include "./history.hpp"
 #include "./signal_handler.hpp"
 #include "./flock.hpp"
+#include "./malware_detection.hpp"
 
 using namespace std;
-
-const int MAXCHAR = 100;
-const int MAXARGS = 100;
-
-pid_t pid;
 
 pid_t fgpid = 0;
 const pid_t rootpid = getpid();
 std::vector<Pipeline *> pipesArr;
 std::map<pid_t, int> pid2index;
-
 History history;
-
-void ctrlChandler(int sig)
-{
-    if (rootpid == getpid())
-    {
-        printf("\n");
-        rl_on_new_line();
-        rl_replace_line("", 0);
-        rl_redisplay();
-    }
-    else
-        kill(getpid(), SIGKILL);
-}
-void ctrlZhandler(int sig)
-{
-    if (rootpid == getpid())
-    {
-        printf("\n");
-        rl_on_new_line();
-        rl_replace_line("", 0);
-        rl_redisplay();
-    }
-    else
-        kill(getpid(), SIGTSTP);
-}
 
 int main()
 {
@@ -79,8 +49,12 @@ int main()
             delep(p->components[0]->args[1]);
             continue;
         }
+        if(p->components[0]->args[0] == "sb"){
+            detect(p->components[0]->args);
+            continue;
+        }
         p->execute();
     }
-
+    history.updateHistory();
     return 0;
 }
