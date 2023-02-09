@@ -62,8 +62,7 @@ void log_pids(const std::string &__fname, std::vector<pid_t> &pids)
 void delep(std::string __fname)
 {
     char *temp = realpath(__fname.c_str(), NULL);
-    if (temp == NULL)
-    {
+    if(temp==NULL){
         perror("error");
         return;
     }
@@ -95,28 +94,19 @@ void delep(std::string __fname)
     {
         close(fd[1]);
 
+        std::cout << "Processes holding a lock or have the file open:\n";
+
         std::vector<pid_t> pids;
 
         int n;
         pid_t pid;
         while ((n = read(fd[0], &pid, sizeof(pid))) > 0)
         {
+            std::cout << pid << std::endl;
             pids.push_back(pid);
         }
 
         close(fd[0]);
-
-        if (pids.empty())
-        {
-            std::cout << "No processes holding a lock or have the file open\n";
-            return;
-        }
-
-        std::cout << "Processes holding a lock or have the file open:\n";
-        for (int i = 0; i < pids.size(); i++)
-        {
-            std::cout << pid << std::endl;
-        }
 
         std::cout << "Kill these processes and delete the file (yes/no)? ";
 
