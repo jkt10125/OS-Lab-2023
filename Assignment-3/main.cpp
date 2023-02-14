@@ -29,7 +29,7 @@ std::vector<std::vector<int>> Decode(int *a, int len) {
     int mmn = 0; // Maximum Marked Node
     for (int i = 0; i < len; i++) {
         if (a[i] & marker) {
-            mmn = std::max(mmn, (a[i] & marker));
+            mmn = std::max(mmn, (a[i] ^ marker));
         }
     }
     
