@@ -59,6 +59,11 @@ void print_array(int *a, int sz){
     cout << endl;
 }
 
+int *vector_from_shm(int& shmid, key_t keyid, int size){
+    shmid = shmget(keyid, size*sizeof(int), IPC_CREAT | 0666);
+    int *output = (int *)shmat(shmid, NULL, 0);
+    return output;
+}
 
 int *vector_to_shm(int *input, int size, int& shmid, key_t keyid){
     shmid = shmget(keyid, size*sizeof(int), IPC_CREAT | 0666);
@@ -95,6 +100,9 @@ int main(){
     int shmid;
     int *ptr = vector_to_shm(vec, 10, shmid, key);
     print_array(ptr, 10);
+
+    int *atr = vector_from_shm(shmid, key, 10);
+    print_array(atr, 10);
 
     destroy_shmid(shmid, ptr);
 
