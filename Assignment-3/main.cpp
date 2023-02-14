@@ -1,42 +1,100 @@
-#include <iostream>
 #include <vector>
-#include <unistd.h>
-#include <sys/shm.h>
-#include <sys/stat.h>
+#include <string>
+#include <fstream>
+#include <sstream>
+#include <iostream>
+#include <algorithm>
 
-using namespace std;
+int marker = (1 << 30);
 
-int main()
+int *Encode(std::vector<std::vector<int>> &adj, int &len) {
+    // Flattening our 2D vector into integer array
+    int *a = (int *) malloc(sizeof(int));
+    a[0] = '\0';
+
+    len = 0;
+
+    for (int i = 0; i < adj.size(); i++) {
+        a = (int *) realloc(a, sizeof(int) * (adj[i].size() + len + 2));
+        a[len++] = (i | marker);
+        for (int it : adj[i]) {
+            a[len++] = it;
+        }
+        a[len] = '\0';
+    }
+    return a;
+}
+
+std::vector<std::vector<int>> Decode(int *a, int len) {
+    int mmn = 0; // Maximum Marked Node
+    for (int i = 0; i < len; i++) {
+        if (a[i] & marker) {
+            mmn = std::max(mmn, (a[i] ^ marker));
+        }
+    }
+    
+    std::vector<std::vector<int>> adj(mmn + 1);
+    int curr = 0;
+    for (int i = 0; i < len; i++) {
+        if (a[i] & marker) {
+            curr = (a[i] ^ marker);
+        }
+        else {
+            adj[curr].push_back(a[i]);
+        }
+    }
+
+    return adj;
+}
+
+int main(int argc, char *argv[])
 {
-    // Create a shared memory segment
-    int shm_id = shmget(IPC_PRIVATE, sizeof(vector<vector<int>>), IPC_CREAT | 0777);
-    if (shm_id == -1) {
-        perror("shmget");
-        return 1;
+    // The result of the read is placed in here
+    // In C++, we use a vector like an array but vectors can dynamically grow
+    // as required when we get more edges.
+    std::vector<std::vector<int>> edges;
+
+    // Replace 'Plop' with your file name.
+    std::ifstream file(argv[1]);
+
+    std::string line;
+    // Read one line at a time into the variable line:
+    while(std::getline(file, line))
+    {
+        std::vector<int> lineData;
+        std::stringstream lineStream(line);
+
+        int value;
+        // Read an integer at a time from the line
+        while(lineStream >> value)
+        {
+            // Add the integers from a line to a 1D array (vector)
+            lineData.push_back(value);
+        }
+        // When all the integers have been read, add the 1D array
+        // into a 2D array (as one line in the 2D array)
+        edges.push_back(lineData);
     }
 
-    // Attach the shared memory segment to the process' address space
-    void *ptr = shmat(shm_id, nullptr, 0);
-    if (ptr == (void *)-1) {
-        perror("shmat");
-        return 1;
+    int max_node = 0;
+
+    for (std::vector<int> it : edges) {
+        max_node = std::max({max_node, it[0], it[1]});
     }
 
-    // Create a vector of vectors in shared memory
-    new (ptr) vector<vector<int>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
-
-    while (1);
-
-    // Detach the shared memory segment from the process' address space
-    if (shmdt(ptr) == -1) {
-        perror("shmdt");
-        return 1;
+    std::vector<std::vector<int>> adj(max_node + 1);
+    
+    for (std::vector<int> it : edges) {
+        adj[it[0]].push_back(it[1]);
+        adj[it[1]].push_back(it[0]);
     }
 
-    // Remove the shared memory segment
-    if (shmctl(shm_id, IPC_RMID, nullptr) == -1) {
-        perror("shmctl");
-        return 1;
+    int len;
+
+    int *a = Encode(adj, len);
+
+    for (int i = 0; i < len; i++) {
+        std::cout << a[i] << ' ';
     }
 
     return 0;
