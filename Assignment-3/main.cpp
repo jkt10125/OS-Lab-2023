@@ -37,7 +37,7 @@ std::vector<std::vector<int>> Decode(int *a, int len) {
     int curr = 0;
     for (int i = 0; i < len; i++) {
         if (a[i] & marker) {
-            curr = a[i] ^ marker;
+            curr = (a[i] ^ marker);
         }
         else {
             adj[curr].push_back(a[i]);
