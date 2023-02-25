@@ -139,7 +139,7 @@ int main(int argc, char *argv[])
                 consumerProcess(i);
                 sleep(30);
             }
-            exit(10125);
+            exit(0);
         }
     }
     waitpid(producerID, NULL, 0);
