@@ -1,4 +1,5 @@
 #include <iostream>
+#include "definitions.h"
 #include <vector>
 #include <unistd.h>
 #include <sys/shm.h>
@@ -8,6 +9,9 @@ using namespace std;
 
 int main()
 {
+    int node_shmid = shmget(key, max_node_size, IPC_CREAT | 0666);
+
+    
     // Get the shared memory segment identifier
     int shm_id = shmget(IPC_PRIVATE, sizeof(vector<vector<int>>), S_IRUSR | S_IWUSR);
     if (shm_id == -1) {

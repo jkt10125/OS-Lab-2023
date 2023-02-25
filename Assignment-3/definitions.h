@@ -2,7 +2,12 @@
 #define DEFINITIONS_H
 
 #include <iostream>
+#include <sys/ipc.h>
 
+const int max_node_size = (1 << 13);
+const int max_edge_size = (1 << 21);
+
+const int key = ftok("main.cpp", 0);
 class Edge{
     int to;
     int next;
