@@ -1,14 +1,24 @@
+// Ass-4
+// Group 18
+// 20CS30024
+// 20CS10083
+// 20CS10089
+// 20CS10001
+
 #include <vector>
 #include <string>
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <sys/shm.h>
 #include <algorithm>
+
+using namespace std;
 
 int marker = (1 << 30);
 
+// Flattening our 2D vector into integer array
 int *Encode(std::vector<std::vector<int>> &adj, int &len) {
-    // Flattening our 2D vector into integer array
     int *a = (int *) malloc(sizeof(int));
     a[0] = '\0';
 
@@ -47,6 +57,37 @@ std::vector<std::vector<int>> Decode(int *a, int len) {
     return adj;
 }
 
+
+void vector_to_shm(int &shmid, key_t keyid, int *input, int size) {
+    shmid = shmget(keyid, (size + 1) * sizeof(int), IPC_CREAT | 0666);
+
+    int *output = (int *) shmat(shmid, NULL, 0);
+
+    output[0] = size;
+    for(int i = 0; i < size; i++) {
+        output[i + 1] = input[i];
+    }
+}
+
+int *vector_from_shm(int &shmid, key_t keyid, int &size){
+    shmid = shmget(keyid, sizeof(int), IPC_CREAT | 0666);
+    int *output = (int *) shmat(shmid, NULL, 0);
+    size = output[0];
+
+    shmid = shmget(keyid, (size + 1) * sizeof(int), IPC_CREAT | 0666);
+    output = (int *) shmat(shmid, NULL, 0);
+
+    // std::cout << size;
+    return &output[1];
+}
+
+void destroy_shmid(int shmid, int* &ptr) {
+    // Detach the memory segment mat from the address space of this process
+    shmdt(ptr);
+    // Mark the segment identified by shmid to be destroyed
+    shmctl(shmid, IPC_RMID, NULL);
+}
+
 int main(int argc, char *argv[])
 {
     // The result of the read is placed in here
@@ -54,7 +95,7 @@ int main(int argc, char *argv[])
     // as required when we get more edges.
     std::vector<std::vector<int>> edges;
 
-    // Replace 'Plop' with your file name.
+    // Giving the command line arguments to filepath
     std::ifstream file(argv[1]);
 
     std::string line;
@@ -78,6 +119,7 @@ int main(int argc, char *argv[])
 
     int max_node = 0;
 
+    // 
     for (std::vector<int> it : edges) {
         max_node = std::max({max_node, it[0], it[1]});
     }
@@ -90,12 +132,37 @@ int main(int argc, char *argv[])
     }
 
     int len;
-
     int *a = Encode(adj, len);
+    adj.clear();
 
-    for (int i = 0; i < len; i++) {
-        std::cout << a[i] << ' ';
+    key_t key = ftok("main.cpp", 0);
+
+    int shmid;
+
+    vector_to_shm(shmid, key, a, len);
+    
+
+    int size;
+
+    int *atr = vector_from_shm(shmid, key, size);
+
+    for (int i = 0; i < size; i++) cout << atr[i] << " ";
+    
+    adj = Decode(atr, size);
+
+    cout << "Rsultant Graph after decode is : \n";
+
+    for (int i = 0; i < adj.size(); i++) {
+        cout << i << " --> ";
+        for (int node : adj[i]) {
+            cout << node << ' ';
+        }
+        cout << endl;
     }
+
+    cout << "\nSize of the Flattened Graph: " << size << endl;
+
+    destroy_shmid(shmid, atr);
 
     return 0;
 }
