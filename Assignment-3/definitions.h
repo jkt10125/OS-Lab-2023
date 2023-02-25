@@ -14,7 +14,7 @@ struct Edge{
     int next;
 };
 
-void *shmptr;
+
 
 int &getNodeCount();
 

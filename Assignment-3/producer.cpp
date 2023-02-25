@@ -1,5 +1,6 @@
 #include <iostream>
 #include "definitions.h"
+#include "producer.h"
 #include <vector>
 #include <unistd.h>
 #include <sys/shm.h>
@@ -8,10 +9,5 @@
 using namespace std;
 
 void producerProcess() {
-    
-}
 
-int main()
-{
-    return 0;
 }
