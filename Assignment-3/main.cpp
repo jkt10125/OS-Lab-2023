@@ -12,7 +12,8 @@
 #include <fcntl.h>
 #include <sys/wait.h>
 #include "definitions.h"
-
+#include "producer.h"
+#include "consumer.h"
 using namespace std;
 
 void *shmptr;
@@ -122,12 +123,24 @@ int main(int argc, char *argv[])
     producerID = fork();
     if (producerID == 0)
     {
-        output("output.txt");
+        producerProcess();
         exit(0);
     }
-    else
+
+    for (int i = 0; i < CONSUMER_COUNT; i++)
     {
-        waitpid(producerID, NULL, 0);
+        consumerIDs[i] = fork();
+        if (consumerIDs[i] == 0)
+        {
+            consumerProcess(i);
+            exit(0);
+        }
     }
+    waitpid(producerID, NULL, 0);
+    for (int i = 0; i < CONSUMER_COUNT; i++)
+    {
+        waitpid(consumerIDs[i], NULL, 0);
+    }
+
     return 0;
 }
