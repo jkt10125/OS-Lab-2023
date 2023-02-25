@@ -123,7 +123,10 @@ int main(int argc, char *argv[])
     producerID = fork();
     if (producerID == 0)
     {
-        producerProcess();
+        while(1) {
+            producerProcess();
+            sleep(50);
+        }
         exit(0);
     }
 
@@ -132,7 +135,10 @@ int main(int argc, char *argv[])
         consumerIDs[i] = fork();
         if (consumerIDs[i] == 0)
         {
-            consumerProcess(i);
+            while (1) {
+                consumerProcess(i);
+                sleep(30);
+            }
             exit(0);
         }
     }
