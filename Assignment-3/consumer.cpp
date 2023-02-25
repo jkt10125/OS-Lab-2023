@@ -60,10 +60,10 @@ void consumerProcess(int id) {
     
     for (int i = 0; i < node_size; i++) {
         int node = i;
-        myfile << node << " : " << node << ", ";
+        myfile << node << " : " << node;
         while (node != par[node]) {
             node = par[node];
-            myfile << node << ", ";
+            myfile << ", " << node;
         }
         myfile << endl;
     }
