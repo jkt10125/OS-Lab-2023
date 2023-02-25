@@ -2,18 +2,14 @@
 #define DEFINITIONS_H
 
 #include <iostream>
-#include <sys/ipc.h>
 
-const int max_node_size = (1 << 13);
-const int max_edge_size = (1 << 21);
+const int MAX_NODES = (1 << 13);
+const int MAX_EDGES = (1 << 21);
+const int CONSUMER_COUNT = 10;
 
-const int key = ftok("main.cpp", 0);
-class Edge{
+struct Edge{
     int to;
     int next;
-public:
-    Edge(int dest, int nxt): to(dest), next(nxt){}
-    ~Edge(){}
 };
 
 class SegmentTree{
