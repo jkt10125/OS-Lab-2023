@@ -48,7 +48,6 @@ void consumerProcess(int id) {
         return par;
     };
 
-    // vector<int> par(node_size);
     vector<int> par = dijkstra(id);
     
     if (!myfile.is_open()) {
