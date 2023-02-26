@@ -81,7 +81,7 @@ void input(const string &filepath)
 
         if (!(iss >> u >> v))
         {
-            cerr << "Invalid edge format! Ignored\n";
+            cerr << "Invalid edge format! Ignored" << endl;
             continue;
         }
 
@@ -97,26 +97,10 @@ void input(const string &filepath)
         nodes[v] = edge_count;
         edge_count++;
 
-        node_count = max({node_count, u, v});
+        node_count = max({node_count, u + 1, v + 1});
     }
 
     in.close();
-}
-
-void output(const string &filepath)
-{
-    ofstream out(filepath);
-    int &node_count = getNodeCount();
-    int *nodes = getNodeArr();
-    Edge *edges = getEdgeArr();
-    for (int u = 0; u <= node_count; u++)
-    {
-        for (int index = nodes[u]; index != -1; index = edges[index].next)
-        {
-            out << u << " " << edges[index].to << endl;
-        }
-    }
-    out.close();
 }
 
 void createSharedSpace()
@@ -124,11 +108,15 @@ void createSharedSpace()
     shmid = shmget(IPC_PRIVATE, sizeof(int) + MAX_NODES * sizeof(int) + sizeof(int) + MAX_EDGES * sizeof(Edge), IPC_CREAT | 0666);
     shmptr = shmat(shmid, NULL, 0);
 }
-void ctrlChandler(int signal){
+
+void ctrlChandler(int signal)
+{
     detach();
-    if(getpid()==mainID) shmctl(shmid, IPC_RMID, NULL);
+    if (getpid() == mainID)
+        shmctl(shmid, IPC_RMID, NULL);
     exit(0);
 }
+
 int main(int argc, char *argv[])
 {
     signal(SIGINT, ctrlChandler);

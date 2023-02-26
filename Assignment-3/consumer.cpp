@@ -22,7 +22,9 @@ void consumerProcess(int id) {
         set<pair<int, int>> s; // {dist[u], u}
         vector<int> dist(node_size + 1, INT32_MAX);
         vector<int> par(node_size + 1, -1);
-        for (int i = node_size / 10 * id; i < node_size / 10 * (id + 1); i++) {
+        int limit = node_size / 10 * (id + 1);
+        if(id+1==CONSUMER_COUNT) limit = node_size;
+        for (int i = node_size / 10 * id; i < limit; i++) {
             dist[i] = 0;
             par[i] = i;
             s.insert({dist[i], i});
@@ -56,15 +58,18 @@ void consumerProcess(int id) {
     }
     
     for (int i = 0; i < node_size; i++) {
-        int node = i;
-        myfile << node << " : " << node;
+        int node = i, distance = 0;
+        myfile << "Node " << node << ": " << node;
         while (node != par[node]) {
             node = par[node];
-            myfile << ", " << node;
+            distance++;
+            myfile << " -> " << node;
         }
         myfile << endl;
+        myfile << "Distance: " << distance << endl;
     }
 
+    myfile << string(100, '-') << endl;
     myfile << string(100, '-') << endl;
 
     myfile.close();
