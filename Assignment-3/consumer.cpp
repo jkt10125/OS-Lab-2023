@@ -55,7 +55,6 @@ void consumerProcess(int id) {
         return par;
     };
 
-    // vector<int> par(node_size);
     vector<int> par = dijkstra(id);
     
     for (int i = 0; i < node_size; i++) {
