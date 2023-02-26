@@ -1,12 +1,8 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include <unistd.h>
-#include <sys/shm.h>
-#include <sys/stat.h>
 #include <set>
 #include "definitions.h"
-#include "consumer.h"
 
 using namespace std;
 
@@ -15,9 +11,6 @@ void consumerProcess(int id) {
     string filename = "consumer_" + to_string(id) + ".txt";
     ofstream myfile(filename.c_str(), ios::app);
 
-    if (!myfile.is_open()) {
-        perror("Unable to open file");
-    }
 
     int node_size = getNodeCount();
     int *NodeArr = getNodeArr();
@@ -58,6 +51,11 @@ void consumerProcess(int id) {
     // vector<int> par(node_size);
     vector<int> par = dijkstra(id);
     
+    if (!myfile.is_open()) {
+        perror("Unable to open file");
+        return;
+    }
+    
     for (int i = 0; i < node_size; i++) {
         int node = i;
         myfile << node << " : " << node;
@@ -68,7 +66,7 @@ void consumerProcess(int id) {
         myfile << endl;
     }
 
-    myfile << "----------------------------------------------------------------------------" << endl;
+    myfile << string(100, '-') << endl;
 
     myfile.close();
 

@@ -1,7 +1,3 @@
-#include <vector>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string>
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -11,12 +7,13 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/wait.h>
+#include <signal.h>
 #include "definitions.h"
-#include "producer.h"
-#include "consumer.h"
 using namespace std;
 
+int shmid;
 void *shmptr;
+const pid_t mainID = getpid(); 
 
 int &getNodeCount()
 {
@@ -36,6 +33,19 @@ int &getEdgeCount()
 Edge *getEdgeArr()
 {
     return reinterpret_cast<Edge *>(static_cast<int *>(shmptr) + 1 + MAX_NODES + 1);
+}
+
+void detach()
+{
+    shmdt(shmptr);
+}
+
+void dieWithError()
+{
+    cerr << "Shared memory limit exceeded\n";
+    cerr << "Process: " << getpid() << " terminated\n";
+    detach();
+    exit(0);
 }
 
 void init()
@@ -111,22 +121,30 @@ void output(const string &filepath)
 
 void createSharedSpace()
 {
-    int shmid = shmget(IPC_PRIVATE, sizeof(int) + MAX_NODES * sizeof(int) + sizeof(int) + MAX_EDGES * sizeof(Edge), IPC_CREAT | 0666);
+    shmid = shmget(IPC_PRIVATE, sizeof(int) + MAX_NODES * sizeof(int) + sizeof(int) + MAX_EDGES * sizeof(Edge), IPC_CREAT | 0666);
     shmptr = shmat(shmid, NULL, 0);
 }
-
+void ctrlChandler(int signal){
+    detach();
+    if(getpid()==mainID) shmctl(shmid, IPC_RMID, NULL);
+    exit(0);
+}
 int main(int argc, char *argv[])
 {
+    signal(SIGINT, ctrlChandler);
     createSharedSpace();
     input("facebook_combined.txt");
     int producerID, consumerIDs[CONSUMER_COUNT];
     producerID = fork();
     if (producerID == 0)
     {
-        while(1) {
-            producerProcess();
+        srand(static_cast<unsigned>(time(NULL)));
+        while (1)
+        {
             sleep(50);
+            producerProcess();
         }
+        detach();
         exit(0);
     }
 
@@ -135,10 +153,12 @@ int main(int argc, char *argv[])
         consumerIDs[i] = fork();
         if (consumerIDs[i] == 0)
         {
-            while (1) {
+            while (1)
+            {
                 consumerProcess(i);
                 sleep(30);
             }
+            detach();
             exit(0);
         }
     }
@@ -147,6 +167,7 @@ int main(int argc, char *argv[])
     {
         waitpid(consumerIDs[i], NULL, 0);
     }
-
+    detach();
+    shmctl(shmid, IPC_RMID, NULL);
     return 0;
 }

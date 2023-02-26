@@ -1,15 +1,10 @@
 #include <iostream>
 #include "definitions.h"
-#include "producer.h"
 #include <vector>
 #include <fstream>
-#include <unistd.h>
-#include <sys/shm.h>
-#include <sys/stat.h>
 #include <algorithm>
 #include <numeric>
-#include "producer.h"
-#include "definitions.h"
+#include <random>
 
 using namespace std;
 
@@ -23,9 +18,11 @@ void connectNewNode(int node_id, vector<int> &degree)
     degree.push_back(0);
 
     int k = 1 + rand() % 20;
+    default_random_engine generator;
     while (k--)
     {
-        int x = 1 + rand() % range;
+        uniform_int_distribution<int> U(1, range);
+        int x = U(generator);
         int u = 0, prefix_sum = 0;
 
         while (u < node_count)
@@ -36,6 +33,8 @@ void connectNewNode(int node_id, vector<int> &degree)
             u++;
         }
 
+        if (edge_count == MAX_EDGES)
+            dieWithError();
         // add node_id->u
         edges[edge_count].to = u;
         edges[edge_count].next = nodes[node_id];
@@ -43,6 +42,8 @@ void connectNewNode(int node_id, vector<int> &degree)
         edge_count++;
         degree[u]++;
 
+        if (edge_count == MAX_EDGES)
+            dieWithError();
         // add u->node_id
         edges[edge_count].to = node_id;
         edges[edge_count].next = nodes[u];
@@ -53,27 +54,11 @@ void connectNewNode(int node_id, vector<int> &degree)
         range++;
     }
 }
-void printDegrees()
-{
-    const int &curr_node_count = getNodeCount();
-    int *nodes = getNodeArr();
-    Edge *edges = getEdgeArr();
-    int degree;
-    ofstream out("degree.txt");
-    for (int u = 0; u < curr_node_count; u++)
-    {
-        degree = 0;
-        for (int index = nodes[u]; index != -1; index = edges[index].next)
-        {
-            degree++;
-        }
-        out << u << ": " << degree << endl;
-    }
-    out.close();
-}
 
 void producerProcess()
 {
+    cerr << "Producer: adding new nodes\n";
+
     int &curr_node_count = getNodeCount();
     int *nodes = getNodeArr();
     Edge *edges = getEdgeArr();
@@ -87,12 +72,12 @@ void producerProcess()
         }
     }
 
-    srand(static_cast<unsigned>(time(NULL)));
     int m = 10 + rand() % 21;
     while (m--)
     {
+        if (curr_node_count == MAX_NODES)
+            dieWithError();
         connectNewNode(curr_node_count, degree);
         curr_node_count++;
     }
-    printDegrees();
 }
