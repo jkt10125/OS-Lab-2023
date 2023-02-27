@@ -57,7 +57,7 @@ void connectNewNode(int node_id, vector<int> &degree)
 
 void producerProcess()
 {
-    cerr << "Producer waked up\n";
+    cerr << "Producer waked up, adding new nodes\n";
 
     int &curr_node_count = getNodeCount();
     int *nodes = getNodeArr();

@@ -1,0 +1,14 @@
+id, unoptimized,    optimized
+1 ,     4510.27,    516.864
+2 ,     5935.41,    614.364
+3 ,     3882.27,    714.682
+4 ,     4939.18,    758.455
+5 ,     4166.68,    644.136
+6 ,     4440.36,    734.409
+7 ,     5521.77,    934.682
+8 ,     3869.14,    956.545
+9 ,     4863.55,    843.682
+10,     3955.14,    1520.
+
+run command:
+tail -n+2 result.csv | awk -F, '{sum1+=$2; sum2+=$3; cnt++} END{printf "unoptimized average CPU-time = %lf, optimized average CPU-time = %lf, optimization ratio = %lf\n", sum1/cnt, sum2/cnt, sum1/sum2}'
