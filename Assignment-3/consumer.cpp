@@ -177,16 +177,12 @@ void consumerProcess(int id, bool optimize)
         }
     };
     auto start = high_resolution_clock::now();
-    if (seen_nodes == node_size)
-    {
-        // do nothing
-    }
-    else if (!optimize || seen_nodes == 0)
+
+    if (!optimize || seen_nodes == 0)
     {
         dijkstra(id);
-        auto stop = high_resolution_clock::now();
     }
-    else
+    else if (seen_nodes != node_size)
     {
         seen_par.resize(node_size);
         seen_dist.resize(node_size);
