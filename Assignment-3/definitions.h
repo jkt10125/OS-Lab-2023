@@ -19,6 +19,6 @@ Edge *getEdgeArr();
 void detach();
 void dieWithError();
 void producerProcess();
-void consumerProcess(int id);
+void consumerProcess(int id, bool optimize);
 
 #endif

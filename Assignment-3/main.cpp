@@ -122,6 +122,7 @@ int main(int argc, char *argv[])
     signal(SIGINT, ctrlChandler);
     createSharedSpace();
     input("facebook_combined.txt");
+    bool optimize = (argc == 2 && !strcmp(argv[1],"-optimize") ? true : false);
     int producerID, consumerIDs[CONSUMER_COUNT];
     producerID = fork();
     if (producerID == 0)
@@ -129,7 +130,7 @@ int main(int argc, char *argv[])
         srand(static_cast<unsigned>(time(NULL)));
         while (1)
         {
-            sleep(50);
+            sleep(5);
             producerProcess();
         }
         detach();
@@ -142,9 +143,9 @@ int main(int argc, char *argv[])
         if (consumerIDs[i] == 0)
         {
             while (1)
-            {
-                consumerProcess(i);
-                sleep(30);
+            {   
+                consumerProcess(i, optimize);
+                sleep(3);
             }
             detach();
             exit(0);
