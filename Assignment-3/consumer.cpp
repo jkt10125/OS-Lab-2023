@@ -110,8 +110,31 @@ void consumerProcess(int id, bool optimize) {
         return par;
     };
 
+    auto BFS = [&node_size, &NodeArr, &edge_size, &EdgeArr] (vector<int> sources) {
+        queue<int> Q;
+        vector<bool> vis(node_size, false);
+
+        for (int x : sources) vis[x] = true, Q.push(x);
+        while (!Q.empty()) {
+            int u = Q.front();
+            Q.pop();
+            int edgePtr = NodeArr[u];
+            while (edgePtr != -1) {
+                int v = EdgeArr[edgePtr].to;
+                if (!vis[v] && seen_dist[v] > seen_dist[u] + 1) {
+                    seen_dist[v] = seen_dist[u] + 1;
+                    seen_par[v] = u;
+                    vis[v] = true;
+                    Q.push(v);
+                }
+                edgePtr = EdgeArr[edgePtr].next;
+            }
+        }
+
+    };
+
     auto sort_new_nodes = [&node_size, &NodeArr, &edge_size, &EdgeArr] (int id) {
-        vector<pair<int,int>> new_nodes(node_size - seen_nodes);
+        vector<pair<int,int>> new_nodes(node_size - seen_nodes); // {indegree, node_id}
         for (int i = 0 ; i < new_nodes.size(); i++){
             new_nodes[i].first = 0;
             new_nodes[i].second = i+seen_nodes;
@@ -157,7 +180,8 @@ void consumerProcess(int id, bool optimize) {
                 j++;
             }
         }
-        update_graph(new_sources, NodeArr, EdgeArr, node_size, edge_size);
+        // update_graph(new_sources, NodeArr, EdgeArr, node_size, edge_size);
+        BFS(new_sources);
         auto stop = high_resolution_clock::now();
         auto duration = duration_cast<microseconds>(stop - start);
         start = high_resolution_clock::now();
