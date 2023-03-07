@@ -79,11 +79,13 @@ private:
     using ActionQueue = priority_queue<Action, vector<Action>, Comparator>;
 
 public:
-    struct Friend
+    using Friend = struct Friend
     {
         Node *node;
         int priority;
+        Friend(){};
         Friend(Node *n, int p = 0) : node(n), priority(p) {}
+        Friend(const Friend &a) : node(a.node), priority(a.priority) {}
     };
     enum PREFERENCE
     {
@@ -129,11 +131,11 @@ public:
     friend ostream &operator<<(ostream &os, const Node &a)
     {
         os << "User: " << a.userId << endl;
-        os << "Prefers: " << ((a.preference == Node::CHRONOLOGICAL) ? "time sorted feed" : "feed from close friends") << endl;
+        os << "Prefers: " << ((a.preference == Node::CHRONOLOGICAL) ? "latest feed" : "feed from close friends") << endl;
         os << "Friend List: ";
         for (const pair<int, Node::Friend> &it : a.friendList)
         {
-            os << it.first << endl;
+            os << it.first << " ";
         }
         os << endl;
 
@@ -183,6 +185,7 @@ Node **readGraph(const string &filename)
     {
         nodes[i]->initPriority();
     }
+    return nodes;
 }
 
 Node **nodes;
@@ -191,20 +194,9 @@ uint64_t Action::actionCount = 0;
 int main()
 {
     nodes = readGraph(INPUT_FILE);
-    // Action a;
-    // Node n;
-    // n.userId = 0;
-    // for (int i = 0; i < 5; i++)
-    // {
-    //     cin >> a;
-    //     cout << a;
-    //     n.feed.push(a);
-    // }
-    // while (!n.feed.empty())
-    // {
-    //     cout << n.feed.top();
-    //     n.feed.pop();
-    // }
-
+    for (int i = 0; i < MAXNODES; i++)
+    {
+        cout << *nodes[i] << endl;
+    }
     return 0;
 }
