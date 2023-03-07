@@ -38,18 +38,14 @@ Node **readGraph(const string &filename)
 }
 
 Node **nodes;
-queue<Action *> generatedActions;
-bool isEmptyShared = true;
-pthread_cond_t emptyShared;
-pthread_mutex_t mutexShared;
+queue<Action *> actionQueue;
+int countNewActions = 0;
+pthread_cond_t newActionGenerated;
+pthread_mutex_t mutex;
 
 int main()
 {
     nodes = readGraph(INPUT_FILE);
-    for (int i = 0; i < MAXNODES; i++)
-    {
-        cout << *nodes[i] << endl;
-    }
 
     pthread_t userSimulatorThread, pushUpdateThreads[MAX_PUSH_UPDATE_THREADS], readPostThreads[MAX_READ_POST_THREADS];
     pthread_create(&userSimulatorThread, NULL, userSimulatorRunner, NULL);
@@ -59,7 +55,7 @@ int main()
     }
     for (int i = 0; i < MAX_READ_POST_THREADS; i++)
     {
-        pthread_create(&readPostThreads[i], NULL, readPostRunner, (void *)(&i));
+        pthread_create(&readPostThreads[i], NULL, readPostRunner, static_cast<void *>(&i));
     }
 
     pthread_join(userSimulatorThread, NULL);

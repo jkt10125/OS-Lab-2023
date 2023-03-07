@@ -14,10 +14,10 @@ class Node;
 extern const int MAXNODES;
 extern const int MAXEDGES;
 extern Node **nodes;
-extern std::queue<Action *> generatedActions;
-extern bool isEmptyShared;
-extern pthread_cond_t emptyShared;
-extern pthread_mutex_t mutexShared;
+extern std::queue<Action *> actionQueue;
+extern int countNewActions;
+extern pthread_cond_t newActionGenerated;
+extern pthread_mutex_t mutex;
 
 class Action
 {
@@ -87,8 +87,12 @@ public:
     friend std::ostream &operator<<(std::ostream &os, const Node &a);
 };
 
-int getRandom(int, int);
+inline int getRandom(int a, int b)
+{
+    return a + rand() % (b - a + 1);
+}
 void *userSimulatorRunner(void *);
 void *pushUpdateRunner(void *param);
 void *readPostRunner(void *param);
+
 #endif

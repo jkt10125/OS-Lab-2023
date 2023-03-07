@@ -21,10 +21,10 @@ Action &Action::operator=(const Action &action)
 
 ostream &operator<<(ostream &os, const Action &a)
 {
-    os << "User: " << a.userId << endl;
-    os << "ID: " << a.actionId << endl;
-    os << "Type: " << (a.actionType == Action::POST ? "Post" : (a.actionType == Action::LIKE ? "Like" : "Comment")) << endl;
-    os << "Time: " << asctime(localtime(&(a.timestamp))) << endl;
+    os << "\tUser: " << a.userId << endl;
+    os << "\tID: " << a.actionId << endl;
+    os << "\tType: " << (a.actionType == Action::POST ? "Post" : (a.actionType == Action::LIKE ? "Like" : "Comment")) << endl;
+    os << "\tTime: " << asctime(localtime(&(a.timestamp))) << endl;
     return os;
 }
 
@@ -151,9 +151,4 @@ ostream &operator<<(ostream &os, const Node &a)
     cout << endl;
 
     return os;
-}
-
-int getRandom(int a, int b)
-{
-    return a + rand() % (a - b + 1);
 }
