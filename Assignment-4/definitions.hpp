@@ -6,6 +6,8 @@
 #include <functional>
 #include <map>
 #include <fstream>
+#include <algorithm>
+#include <iterator>
 
 class Action;
 class Node;
@@ -55,6 +57,7 @@ public:
         Friend();
         Friend(Node *n, int p = 0);
         Friend(const Friend &a);
+        Friend &operator=(const Friend &a);
     };
 
     enum PREFERENCE

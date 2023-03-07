@@ -49,6 +49,15 @@ istream &operator>>(istream &is, Action &a)
 Node::Friend::Friend() : node(NULL), priority(0) {}
 Node::Friend::Friend(Node *n, int p) : node(n), priority(p) {}
 Node::Friend::Friend(const Friend &a) : node(a.node), priority(a.priority) {}
+Node::Friend &Node::Friend::operator=(const Friend &a)
+{
+    if (this != &a)
+    {
+        node = a.node;
+        priority = a.priority;
+    }
+    return *this;
+}
 
 Node::Node() : userId(time(NULL)), preference(CHRONOLOGICAL){};
 Node::Node(int user, PREFERENCE pref) : userId(user), preference(pref), wall([](const Action &a, const Action &b) -> bool
@@ -74,9 +83,42 @@ Node::~Node()
 
 void Node::initPriority()
 {
-    for (const pair<int, Friend> &it : friendList)
-    {
-    }
+        // using Comparator_ = function<bool(pair<int, Friend> a,pair<int, Friend> b)>;
+        // Comparator_ comp;
+        // comp = [](pair<int, Friend> a, pair<int, Friend> b) -> bool
+        // { return a.second.node->userId < b.second.node->userId; };
+        // map<int, Friend>::iterator ls;
+        // map<int, Friend> mp;
+
+        // for (const pair<int, Friend> &it : friendList)
+        // {
+        //     ls = std::set_intersection(friendList.begin(), friendList.end(), nodes[it.first]->friendList.begin(), nodes[it.first]->friendList.end(), mp.begin(), comp);
+
+        // }
+        using Comparator_ = function<bool(pair<int, Friend> a,pair<int, Friend> b)>;
+        Comparator_ comp;
+        comp = [](pair<int, Friend> a, pair<int, Friend> b) -> bool
+        { return a.second.node->userId < b.second.node->userId; };
+
+        vector<pair<int, Friend>> this_Friends, output;
+        for (const pair<int, Friend> &it : friendList)
+        {
+            this_Friends.push_back(it);
+        }
+        sort(this_Friends.begin(), this_Friends.end(), comp);
+        vector<pair<int, Friend>>::iterator ls;
+
+        for (const pair<int, Friend> &it : friendList)
+        {
+            vector<pair<int, Friend>> that_Friends;
+            for (const pair<int, Friend> &it2 : it.second.node->friendList)
+            {
+                that_Friends.push_back(it2);
+            }
+            sort(that_Friends.begin(), that_Friends.end(), comp);
+            ls = std::set_intersection(this_Friends.begin(), this_Friends.end(), that_Friends.begin(), that_Friends.end(), output.begin(), comp);
+            friendList[it.first].priority = ls - output.begin();
+        }
 }
 
 ostream &operator<<(ostream &os, const Node &a)
