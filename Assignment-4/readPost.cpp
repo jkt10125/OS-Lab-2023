@@ -13,14 +13,14 @@ void *readPostRunner(void *param)
         RDops[tid]++;
 
         // pop a node whose feed is updated
-        pthread_mutex_lock(&feedsUpdatedQmutex);
-        while (feedsUpdatedQueue.empty())
+        pthread_mutex_lock(&feedsUpdatedQmutex[tid-1]);
+        while (feedsUpdatedQueue[tid-1].empty())
         {
-            pthread_cond_wait(&newUpdatesPushed, &feedsUpdatedQmutex);
+            pthread_cond_wait(&newUpdatesPushed[tid-1], &feedsUpdatedQmutex[tid-1]);
         }
-        node = feedsUpdatedQueue.front();
-        feedsUpdatedQueue.pop();
-        pthread_mutex_unlock(&feedsUpdatedQmutex);
+        node = feedsUpdatedQueue[tid-1].front();
+        feedsUpdatedQueue[tid-1].pop();
+        pthread_mutex_unlock(&feedsUpdatedQmutex[tid-1]);
 
         // pop an update from the feed of selected node
         pthread_mutex_lock(&feedQmutex[node->userId]);

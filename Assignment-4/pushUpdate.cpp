@@ -14,14 +14,15 @@ void pushToFriends(int tid, Action *action)
         pthread_mutex_unlock(&feedQmutex[f.node->userId]);
 
         // push node f to queue of nodes which are updated
-        pthread_mutex_lock(&feedsUpdatedQmutex);
-        feedsUpdatedQueue.push(f.node);
-        pthread_cond_broadcast(&newUpdatesPushed);
-        pthread_mutex_unlock(&feedsUpdatedQmutex);
+        pthread_mutex_lock(&feedsUpdatedQmutex[f.node->userId%MAX_READ_POST_THREADS]);
+        feedsUpdatedQueue[f.node->userId%MAX_READ_POST_THREADS].push(f.node);
+        pthread_cond_broadcast(&newUpdatesPushed[f.node->userId%MAX_READ_POST_THREADS]);
+        pthread_mutex_unlock(&feedsUpdatedQmutex[f.node->userId%MAX_READ_POST_THREADS]);
 
         // print to logfile
+        string str = "FeedUpdater-" + to_string(tid) + "$ ";
         pthread_mutex_lock(&fmutex);
-        logfile << setw(20) << left << ("FeedUpdater-" + to_string(tid) + "$ ");
+        logfile << setw(20) << left << str;
         logfile << (action->actionType == Action::POST ? "pushed a post " : (action->actionType == Action::LIKE ? "pushed a like " : "pushed a comment "));
         logfile << "(ID: " << action->actionId << ") ";
         logfile << "from user#" << action->userId << " ";
@@ -30,7 +31,7 @@ void pushToFriends(int tid, Action *action)
 
         // print to console
         pthread_mutex_lock(&omutex);
-        cerr << setw(20) << left << ("FeedUpdater-" + to_string(tid) + "$ ");
+        cerr << setw(20) << left << str;
         cerr << (action->actionType == Action::POST ? "pushed a post " : (action->actionType == Action::LIKE ? "pushed a like " : "pushed a comment "));
         cerr << "(ID: " << action->actionId << ") ";
         cerr << "from user#" << action->userId << " ";
@@ -54,11 +55,12 @@ void *pushUpdateRunner(void *param)
         {
             pthread_cond_wait(&newActionGenerated, &actionQmutex);
         }
-        action = actionQueue.front();
-        actionQueue.pop();
+        for(int i = 0; i< 100 && !actionQueue.empty(); i++){
+            action = actionQueue.front();
+            actionQueue.pop();
+            pushToFriends(tid, action);
+        }
         pthread_mutex_unlock(&actionQmutex);
-
-        pushToFriends(tid, action);
     }
     pthread_exit(0);
     return param;

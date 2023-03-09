@@ -16,9 +16,9 @@ pthread_mutex_t feedQmutex[MAXNODES];
 queue<Action *> actionQueue;
 pthread_mutex_t actionQmutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t newActionGenerated = PTHREAD_COND_INITIALIZER;
-queue<Node *> feedsUpdatedQueue;
-pthread_mutex_t feedsUpdatedQmutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t newUpdatesPushed = PTHREAD_COND_INITIALIZER;
+vector<queue<Node *>> feedsUpdatedQueue(MAX_READ_POST_THREADS);
+pthread_mutex_t feedsUpdatedQmutex[MAX_READ_POST_THREADS];
+pthread_cond_t newUpdatesPushed[MAX_READ_POST_THREADS];
 ofstream logfile;
 pthread_mutex_t fmutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t omutex = PTHREAD_MUTEX_INITIALIZER;
@@ -73,7 +73,7 @@ void *monitorThreadRunner(void *param)
     while (1)
     {
         sleep(1);
-        tout << string(60, '-') << "\n                   Interval of 10 seconds                  \n" << string(60, '-') << endl;
+        tout << string(60, '-') << "\n                   Interval of 1 seconds                  \n" << string(60, '-') << endl;
         for (int i = 0; i < MAX_PUSH_UPDATE_THREADS; i++)
         {
             if (PUops0[i] != 0)
@@ -109,7 +109,11 @@ int main()
     {
         feedQmutex[i] = PTHREAD_MUTEX_INITIALIZER;
     }
-
+    for (int i = 0; i< MAX_READ_POST_THREADS; i++)
+    {
+        feedsUpdatedQmutex[i] = PTHREAD_MUTEX_INITIALIZER;
+        newUpdatesPushed[i] = PTHREAD_COND_INITIALIZER;
+    }
     pthread_t userSimulatorThread, pushUpdateThreads[MAX_PUSH_UPDATE_THREADS], readPostThreads[MAX_READ_POST_THREADS];
     pthread_create(&userSimulatorThread, NULL, userSimulatorRunner, NULL);
     for (int i = 0; i < MAX_PUSH_UPDATE_THREADS; i++)
