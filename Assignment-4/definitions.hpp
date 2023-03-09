@@ -13,11 +13,19 @@ class Action;
 class Node;
 extern const int MAXNODES;
 extern const int MAXEDGES;
-extern Node **nodes;
+extern const int MAX_PUSH_UPDATE_THREADS;
+extern const int MAX_READ_POST_THREADS;
+extern Node *nodes[];
+extern pthread_mutex_t feedQmutex[];
 extern std::queue<Action *> actionQueue;
-extern int countNewActions;
+extern pthread_mutex_t actionQmutex;
 extern pthread_cond_t newActionGenerated;
-extern pthread_mutex_t mutex;
+extern std::queue<Node *> feedsUpdatedQueue;
+extern pthread_mutex_t feedsUpdatedQmutex;
+extern pthread_cond_t newUpdatesPushed;
+extern std::ofstream logfile;
+extern pthread_mutex_t fmutex;
+extern pthread_mutex_t omutex;
 
 class Action
 {

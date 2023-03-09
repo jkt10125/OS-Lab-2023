@@ -1,9 +1,10 @@
 #include <iostream>
+#include <iomanip>
 #include "definitions.hpp"
 using namespace std;
 
 uint64_t Action::actionCount = 0;
-Action::Action() {}
+Action::Action() : timestamp(time(NULL)) {}
 Action::Action(int user, ACTION_TYPE type) : userId(user), actionId(actionCount), actionType(type), timestamp(time(NULL)) {}
 Action::Action(const Action &action) : userId(action.userId), actionId(action.actionId), actionType(action.actionType), timestamp(action.timestamp) {}
 Action::~Action() {}
@@ -21,10 +22,10 @@ Action &Action::operator=(const Action &action)
 
 ostream &operator<<(ostream &os, const Action &a)
 {
-    os << "\tUser: " << a.userId << endl;
-    os << "\tID: " << a.actionId << endl;
-    os << "\tType: " << (a.actionType == Action::POST ? "Post" : (a.actionType == Action::LIKE ? "Like" : "Comment")) << endl;
-    os << "\tTime: " << asctime(localtime(&(a.timestamp))) << endl;
+    os << "user#" << a.userId << " ";
+    os << (a.actionType == Action::POST ? "posted" : (a.actionType == Action::LIKE ? "liked" : "commented"));
+    os << " (ID:" << a.actionId << ") ";
+    os << put_time(localtime(&a.timestamp), "at %H:%M:%S on %B %d, %Y") << endl;
     return os;
 }
 
@@ -136,19 +137,19 @@ ostream &operator<<(ostream &os, const Node &a)
     os << "Wall: ";
     while (!Q.empty())
     {
-        cout << Q.top().actionId << " ";
+        os << Q.top().actionId << " ";
         Q.pop();
     }
-    cout << endl;
+    os << endl;
 
     Q = a.feed;
-    cout << "Feed: ";
+    os << "Feed: ";
     while (!Q.empty())
     {
-        cout << Q.top().actionId << " ";
+        os << Q.top().actionId << " ";
         Q.pop();
     }
-    cout << endl;
+    os << endl;
 
     return os;
 }

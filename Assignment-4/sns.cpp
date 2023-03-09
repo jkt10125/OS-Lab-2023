@@ -10,12 +10,23 @@ const int MAX_PUSH_UPDATE_THREADS = 25;
 const int MAX_READ_POST_THREADS = 10;
 const string INPUT_FILE = "musae_git_edges.csv";
 
-Node **readGraph(const string &filename)
+Node *nodes[MAXNODES];
+pthread_mutex_t feedQmutex[MAXNODES];
+queue<Action *> actionQueue;
+pthread_mutex_t actionQmutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t newActionGenerated = PTHREAD_COND_INITIALIZER;
+queue<Node *> feedsUpdatedQueue;
+pthread_mutex_t feedsUpdatedQmutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t newUpdatesPushed = PTHREAD_COND_INITIALIZER;
+ofstream logfile;
+pthread_mutex_t fmutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t omutex = PTHREAD_MUTEX_INITIALIZER;
+
+void readGraph(const string &filename)
 {
-    Node **tempNodes = new Node *[MAXNODES];
     for (int i = 0; i < MAXNODES; i++)
     {
-        tempNodes[i] = new Node(i, (rand() % 2) ? Node::PRIORITY : Node::CHRONOLOGICAL);
+        nodes[i] = new Node(i, (rand() % 2) ? Node::PRIORITY : Node::CHRONOLOGICAL);
     }
     ifstream in(filename);
     string line;
@@ -27,31 +38,34 @@ Node **readGraph(const string &filename)
         ss >> u;
         ss.ignore();
         ss >> v;
-        tempNodes[u]->friendList[v] = Node::Friend(tempNodes[v]);
-        tempNodes[v]->friendList[u] = Node::Friend(tempNodes[u]);
+        nodes[u]->friendList[v] = Node::Friend(nodes[v]);
+        nodes[v]->friendList[u] = Node::Friend(nodes[u]);
     }
     for (int i = 0; i < MAXNODES; i++)
     {
-        tempNodes[i]->initPriority();
+        // nodes[i]->initPriority();
     }
-    return tempNodes;
 }
-
-Node **nodes;
-queue<Action *> actionQueue;
-int countNewActions = 0;
-pthread_cond_t newActionGenerated;
-pthread_mutex_t mutex;
 
 int main()
 {
-    nodes = readGraph(INPUT_FILE);
+    logfile.open("sns.log");
+    if (!logfile.is_open())
+    {
+        perror(INPUT_FILE.c_str());
+        exit(1);
+    }
+    readGraph(INPUT_FILE);
+    for (int i = 0; i < MAXNODES; i++)
+    {
+        feedQmutex[i] = PTHREAD_MUTEX_INITIALIZER;
+    }
 
     pthread_t userSimulatorThread, pushUpdateThreads[MAX_PUSH_UPDATE_THREADS], readPostThreads[MAX_READ_POST_THREADS];
     pthread_create(&userSimulatorThread, NULL, userSimulatorRunner, NULL);
     for (int i = 0; i < MAX_PUSH_UPDATE_THREADS; i++)
     {
-        pthread_create(&pushUpdateThreads[i], NULL, pushUpdateRunner, NULL);
+        pthread_create(&pushUpdateThreads[i], NULL, pushUpdateRunner, static_cast<void *>(&i));
     }
     for (int i = 0; i < MAX_READ_POST_THREADS; i++)
     {
@@ -67,5 +81,6 @@ int main()
     {
         pthread_join(readPostThreads[i], NULL);
     }
+    logfile.close();
     return 0;
 }
