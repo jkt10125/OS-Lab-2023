@@ -7,6 +7,7 @@ void pushToFriends(int tid, Action *action)
 {
     for (auto const &[id, f] : nodes[action->userId]->friendList)
     {
+        PUops1[tid]++;
         // update feed of node f
         pthread_mutex_lock(&feedQmutex[f.node->userId]);
         f.node->feed.push(*action);
@@ -20,18 +21,20 @@ void pushToFriends(int tid, Action *action)
 
         // print to logfile
         pthread_mutex_lock(&fmutex);
-        logfile << setw(20) << left << "FeedUpdater-" + to_string(tid) << "$ ";
+        logfile << setw(20) << left << ("FeedUpdater-" + to_string(tid) + "$ ");
         logfile << (action->actionType == Action::POST ? "pushed a post " : (action->actionType == Action::LIKE ? "pushed a like " : "pushed a comment "));
         logfile << "(ID: " << action->actionId << ") ";
-        logfile << "by user#" << action->userId << endl;
+        logfile << "from user#" << action->userId << " ";
+        logfile << "to user#" << f.node->userId << endl;
         pthread_mutex_unlock(&fmutex);
 
         // print to console
         pthread_mutex_lock(&omutex);
-        cerr << setw(20) << left << "FeedUpdater-" + to_string(tid) << "$ ";
+        cerr << setw(20) << left << ("FeedUpdater-" + to_string(tid) + "$ ");
         cerr << (action->actionType == Action::POST ? "pushed a post " : (action->actionType == Action::LIKE ? "pushed a like " : "pushed a comment "));
         cerr << "(ID: " << action->actionId << ") ";
-        cerr << "by user#" << action->userId << endl;
+        cerr << "from user#" << action->userId << " ";
+        cerr << "to user#" << f.node->userId << endl;
         pthread_mutex_unlock(&omutex);
     }
 }
@@ -41,6 +44,8 @@ void *pushUpdateRunner(void *param)
     int tid = *static_cast<int *>(param);
     while (1)
     {
+        PUops0[tid]++;
+
         Action *action;
 
         // pop an action from the queue of new actions

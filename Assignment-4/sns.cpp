@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <sys/wait.h>
 #include "definitions.hpp"
 
 using namespace std;
@@ -45,6 +46,54 @@ void readGraph(const string &filename)
     {
         // nodes[i]->initPriority();
     }
+
+    ofstream gout("users.log");
+    if (!gout.is_open())
+    {
+        perror("users.log");
+        return;
+    }
+    for (int i = 0; i < MAXNODES; i++)
+    {
+        gout << *nodes[i];
+    }
+    gout.close();
+}
+
+long long PUops0[MAX_PUSH_UPDATE_THREADS], PUops1[MAX_PUSH_UPDATE_THREADS], RDops[MAX_READ_POST_THREADS];
+void *monitorThreadRunner(void *param)
+{
+    ofstream tout("time.log");
+    if (!tout.is_open())
+    {
+        perror("time.log");
+        pthread_exit((void *)(-1));
+        return param;
+    }
+    while (1)
+    {
+        sleep(1);
+        tout << string(60, '-') << "\n                   Interval of 10 seconds                  \n" << string(60, '-') << endl;
+        for (int i = 0; i < MAX_PUSH_UPDATE_THREADS; i++)
+        {
+            if (PUops0[i] != 0)
+            {
+                tout << "FeedUpdater#" << i << " processed " << PUops0[i] << " actions and pushed to " << PUops1[i] << " users." << endl;
+                PUops0[i] = PUops1[i] = 0;
+            }
+        }
+        for (int i = 0; i < MAX_READ_POST_THREADS; i++)
+        {
+            if (RDops[i] != 0)
+            {
+                tout << "FeedReader#" << i << " read " << RDops[i] << " actions." << endl;
+                RDops[i] = 0;
+            }
+        }
+        tout << endl;
+    }
+    tout.close();
+    return param;
 }
 
 int main()
@@ -65,12 +114,14 @@ int main()
     pthread_create(&userSimulatorThread, NULL, userSimulatorRunner, NULL);
     for (int i = 0; i < MAX_PUSH_UPDATE_THREADS; i++)
     {
-        pthread_create(&pushUpdateThreads[i], NULL, pushUpdateRunner, static_cast<void *>(&i));
+        pthread_create(&pushUpdateThreads[i], NULL, pushUpdateRunner, static_cast<void *>(new int(i)));
     }
     for (int i = 0; i < MAX_READ_POST_THREADS; i++)
     {
-        pthread_create(&readPostThreads[i], NULL, readPostRunner, static_cast<void *>(&i));
+        pthread_create(&readPostThreads[i], NULL, readPostRunner, static_cast<void *>(new int(i)));
     }
+    pthread_t monitorThread;
+    pthread_create(&monitorThread, NULL, monitorThreadRunner, NULL);
 
     pthread_join(userSimulatorThread, NULL);
     for (int i = 0; i < MAX_PUSH_UPDATE_THREADS; i++)
@@ -81,6 +132,8 @@ int main()
     {
         pthread_join(readPostThreads[i], NULL);
     }
+    pthread_join(monitorThread, NULL);
+
     logfile.close();
     return 0;
 }

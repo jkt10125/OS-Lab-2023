@@ -10,6 +10,8 @@ void *readPostRunner(void *param)
     Action action;
     while (1)
     {
+        RDops[tid]++;
+
         // pop a node whose feed is updated
         pthread_mutex_lock(&feedsUpdatedQmutex);
         while (feedsUpdatedQueue.empty())
@@ -28,7 +30,7 @@ void *readPostRunner(void *param)
 
         // print to log file
         pthread_mutex_lock(&fmutex);
-        logfile << setw(20) << left << "FeedReader-" + to_string(tid) + "$ ";
+        logfile << setw(20) << left << ("FeedReader-" + to_string(tid) + "$ ");
         logfile << "user#" << node->userId << " ";
         logfile << (action.actionType == Action::POST ? "viewed a post " : (action.actionType == Action::LIKE ? "viewed a like " : "read a comment "));
         logfile << "(ID: " << action.actionId << ") ";
@@ -37,7 +39,7 @@ void *readPostRunner(void *param)
 
         // print to console
         pthread_mutex_lock(&omutex);
-        cerr << setw(20) << left << "FeedReader-" + to_string(tid) + "$ ";
+        cerr << setw(20) << left << ("FeedReader-" + to_string(tid) + "$ ");
         cerr << "user#" << node->userId << " ";
         cerr << (action.actionType == Action::POST ? "viewed a post " : (action.actionType == Action::LIKE ? "viewed a like " : "read a comment "));
         cerr << "(ID: " << action.actionId << ") ";

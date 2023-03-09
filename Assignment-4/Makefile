@@ -9,4 +9,4 @@ debug:sns.o userSimulator.o pushUpdate.o readPost.o definitions.o
 	g++ -Wall sns.o definitions.o userSimulator.o pushUpdate.o readPost.o -lpthread -o sns
 	gdb ./sns
 clean:
-	rm *.o sns sns.log console.log
+	rm *.o sns sns.log console.log users.log time.log

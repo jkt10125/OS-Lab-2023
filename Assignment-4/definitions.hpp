@@ -26,6 +26,7 @@ extern pthread_cond_t newUpdatesPushed;
 extern std::ofstream logfile;
 extern pthread_mutex_t fmutex;
 extern pthread_mutex_t omutex;
+extern long long PUops0[], PUops1[], RDops[];
 
 class Action
 {

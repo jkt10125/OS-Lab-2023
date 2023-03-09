@@ -21,12 +21,12 @@ void generateAction(Node *node)
 
     // print to logfile
     pthread_mutex_lock(&fmutex);
-    logfile << setw(20) << left << "Simulater$ " << *newAction << endl;
+    logfile << setw(20) << left << "Simulater$ " << *newAction;
     pthread_mutex_unlock(&fmutex);
 
     // print to console
     pthread_mutex_lock(&omutex);
-    cerr << setw(20) << left << "Simulater$ " << *newAction << endl;
+    cerr << setw(20) << left << "Simulater$ " << *newAction;
     pthread_mutex_unlock(&omutex);
 
     node->wall.push(*newAction);
