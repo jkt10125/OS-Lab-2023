@@ -26,5 +26,6 @@ plt.scatter(in_degrees.keys(), in_degrees.values())
 plt.xlabel('Node ID')
 plt.ylabel('In-degree')
 plt.title('In-degree Distribution')
+plt.savefig('in_degree.png')
 plt.show()
-plt.savefig('plot.png')
+
