@@ -1,0 +1,35 @@
+1 FeedsUpdatedQueue:
+
+IO lock     Console.log Lines       time
+   no           174290               15
+   no           288550               25
+   no           115830               11
+   no           108680               11
+   no           81480                8
+   yes          118520               9
+   yes          204220               15
+   yes          144190               11
+   yes          152020               11
+   yes          554330               42
+
+10 FeedsUpdatedQueue:
+
+IO lock     Console.log Lines       time
+   no           116880               10
+   no           214970               19
+   no           203170               19
+   no           168691               15
+   no           132670               13
+   yes          114020               8
+   yes          68990                5
+   yes          106500               9
+   yes          131630               10
+   yes          251240               19
+   yes          139170               11
+   yes          276430               22
+   yes          405050               29
+   yes          190120               13
+
+
+   yes          381460               26
+   yes          238480               17

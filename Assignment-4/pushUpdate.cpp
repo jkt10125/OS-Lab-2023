@@ -14,10 +14,16 @@ void pushToFriends(int tid, Action *action)
         pthread_mutex_unlock(&feedQmutex[f.node->userId]);
 
         // push node f to queue of nodes which are updated
-        pthread_mutex_lock(&feedsUpdatedQmutex[f.node->userId%MAX_READ_POST_THREADS]);
-        feedsUpdatedQueue[f.node->userId%MAX_READ_POST_THREADS].push(f.node);
-        pthread_cond_broadcast(&newUpdatesPushed[f.node->userId%MAX_READ_POST_THREADS]);
-        pthread_mutex_unlock(&feedsUpdatedQmutex[f.node->userId%MAX_READ_POST_THREADS]);
+        pthread_mutex_lock(&feedsUpdatedQmutex[action->actionId%MAX_READ_POST_THREADS]);
+        feedsUpdatedQueue[action->actionId%MAX_READ_POST_THREADS].push(f.node);
+        pthread_cond_broadcast(&newUpdatesPushed[action->actionId%MAX_READ_POST_THREADS]);
+        pthread_mutex_unlock(&feedsUpdatedQmutex[action->actionId%MAX_READ_POST_THREADS]);
+
+        // push node f to queue of nodes which are updated
+        // pthread_mutex_lock(&feedsUpdatedQmutex);
+        // feedsUpdatedQueue.push(f.node);
+        // pthread_cond_broadcast(&newUpdatesPushed);
+        // pthread_mutex_unlock(&feedsUpdatedQmutex);
 
         // print to logfile
         string str = "FeedUpdater-" + to_string(tid) + "$ ";
@@ -55,12 +61,13 @@ void *pushUpdateRunner(void *param)
         {
             pthread_cond_wait(&newActionGenerated, &actionQmutex);
         }
-        for(int i = 0; i< 100 && !actionQueue.empty(); i++){
-            action = actionQueue.front();
-            actionQueue.pop();
-            pushToFriends(tid, action);
-        }
+        
+        action = actionQueue.front();
+        actionQueue.pop();
+        
         pthread_mutex_unlock(&actionQmutex);
+        
+        pushToFriends(tid, action);
     }
     pthread_exit(0);
     return param;
