@@ -20,6 +20,10 @@ void *userSimulatorRunner(void *param)
 
     while (1)
     {
+        pthread_mutex_lock(&fmutex);
+        logfile << string(100, '#') << endl;
+        pthread_mutex_unlock(&fmutex);
+
         int newActions;
         Node *node;
         set<int> posters;

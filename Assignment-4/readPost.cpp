@@ -10,8 +10,6 @@ void *readPostRunner(void *param)
     Action action;
     while (1)
     {
-        RDops[tid]++;
-
         // pop a node whose feed is updated
         pthread_mutex_lock(&feedsUpdatedQmutex[tid]);
         while (feedsUpdatedQueue[tid].empty())
@@ -32,6 +30,8 @@ void *readPostRunner(void *param)
         }
         pthread_mutex_unlock(&feedQmutex[node->userId]);
 
+        RDops[tid]+=actions.size();
+        
         // print to log file
         pthread_mutex_lock(&fmutex);
         for (const Action &action : actions)
