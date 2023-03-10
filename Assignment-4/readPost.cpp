@@ -32,28 +32,38 @@ void *readPostRunner(void *param)
         // feedsUpdatedQueue.pop();
         // pthread_mutex_unlock(&feedsUpdatedQmutex);
 
+        vector<Action> actions;
         // pop an update from the feed of selected node
         pthread_mutex_lock(&feedQmutex[node->userId]);
-        action = nodes[node->userId]->feed.top();
-        nodes[node->userId]->feed.pop();
+        while (!nodes[node->userId]->feed.empty())
+        {
+            actions.emplace_back(nodes[node->userId]->feed.top());
+            nodes[node->userId]->feed.pop();
+        }
         pthread_mutex_unlock(&feedQmutex[node->userId]);
 
         // print to log file
         pthread_mutex_lock(&fmutex);
-        logfile << setw(20) << left << ("FeedReader-" + to_string(tid) + "$ ");
-        logfile << "user#" << node->userId << " ";
-        logfile << (action.actionType == Action::POST ? "viewed a post " : (action.actionType == Action::LIKE ? "viewed a like " : "read a comment "));
-        logfile << "(ID: " << action.actionId << ") ";
-        logfile << "by user#" << action.userId << endl;
+        for (const Action &action : actions)
+        {
+            logfile << setw(20) << left << ("FeedReader-" + to_string(tid) + "$ ");
+            logfile << "user#" << node->userId << " ";
+            logfile << (action.actionType == Action::POST ? "viewed a post " : (action.actionType == Action::LIKE ? "viewed a like " : "read a comment "));
+            logfile << "(ID: " << action.actionId << ") ";
+            logfile << "by user#" << action.userId << endl;
+        }
         pthread_mutex_unlock(&fmutex);
 
         // print to console
         pthread_mutex_lock(&omutex);
-        cerr << setw(20) << left << ("FeedReader-" + to_string(tid) + "$ ");
-        cerr << "user#" << node->userId << " ";
-        cerr << (action.actionType == Action::POST ? "viewed a post " : (action.actionType == Action::LIKE ? "viewed a like " : "read a comment "));
-        cerr << "(ID: " << action.actionId << ") ";
-        cerr << "by user#" << action.userId << endl;
+        for (const Action &action : actions)
+        {
+            cout << setw(20) << left << ("FeedReader-" + to_string(tid) + "$ ");
+            cout << "user#" << node->userId << " ";
+            cout << (action.actionType == Action::POST ? "viewed a post " : (action.actionType == Action::LIKE ? "viewed a like " : "read a comment "));
+            cout << "(ID: " << action.actionId << ") ";
+            cout << "by user#" << action.userId << endl;
+        }
         pthread_mutex_unlock(&omutex);
     }
 

@@ -34,7 +34,9 @@ extern long long PUops0[], PUops1[], RDops[];
 class Action
 {
 public:
-    static uint64_t actionCount;
+    static uint64_t postCount;
+    static uint64_t commentCount;
+    static uint64_t likeCount;
     int userId;
     int actionId;
     enum ACTION_TYPE
@@ -67,7 +69,7 @@ public:
         Node *node;
         int priority;
         Friend();
-        Friend(Node *n, int p = 0);
+        Friend(Node *n, int p = -1);
         Friend(const Friend &a);
         Friend &operator=(const Friend &a);
     };

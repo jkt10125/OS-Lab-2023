@@ -2,9 +2,11 @@
 #include <fstream>
 #include <sstream>
 #include <sys/wait.h>
+#include <chrono>
 #include "definitions.hpp"
 
 using namespace std;
+// using namespace chrono;
 const int MAXNODES = 37700;
 const int MAXEDGES = 289003;
 const int MAX_PUSH_UPDATE_THREADS = 25;
@@ -45,11 +47,13 @@ void readGraph(const string &filename)
         nodes[u]->friendList[v] = Node::Friend(nodes[v]);
         nodes[v]->friendList[u] = Node::Friend(nodes[u]);
     }
+    auto start = chrono::high_resolution_clock::now();
     for (int i = 0; i < MAXNODES; i++)
     {
-        // nodes[i]->initPriority();
+        nodes[i]->initPriority();
     }
-
+    auto end = chrono::high_resolution_clock::now();
+    auto time = chrono::duration_cast<chrono::microseconds>(end - start).count();
     ofstream gout("users.log");
     if (!gout.is_open())
     {
@@ -76,7 +80,8 @@ void *monitorThreadRunner(void *param)
     while (1)
     {
         sleep(1);
-        tout << string(60, '-') << "\n                   Interval of 1 seconds                  \n" << string(60, '-') << endl;
+        tout << string(60, '-') << "\n                   Interval of 1 seconds                  \n"
+             << string(60, '-') << endl;
         for (int i = 0; i < MAX_PUSH_UPDATE_THREADS; i++)
         {
             if (PUops0[i] != 0)
@@ -112,12 +117,12 @@ int main()
     {
         feedQmutex[i] = PTHREAD_MUTEX_INITIALIZER;
     }
-    for (int i = 0; i< MAX_READ_POST_THREADS; i++)
+    for (int i = 0; i < MAX_READ_POST_THREADS; i++)
     {
         feedsUpdatedQmutex[i] = PTHREAD_MUTEX_INITIALIZER;
         newUpdatesPushed[i] = PTHREAD_COND_INITIALIZER;
     }
-    pthread_t userSimulatorThread, pushUpdateThreads[MAX_PUSH_UPDATE_THREADS], readPostThreads[MAX_READ_POST_THREADS];
+    pthread_t userSimulatorThread, pushUpdateThreads[MAX_PUSH_UPDATE_THREADS], readPostThreads[MAX_READ_POST_THREADS], monitorThread;
     pthread_create(&userSimulatorThread, NULL, userSimulatorRunner, NULL);
     for (int i = 0; i < MAX_PUSH_UPDATE_THREADS; i++)
     {
@@ -127,7 +132,6 @@ int main()
     {
         pthread_create(&readPostThreads[i], NULL, readPostRunner, static_cast<void *>(new int(i)));
     }
-    pthread_t monitorThread;
     pthread_create(&monitorThread, NULL, monitorThreadRunner, NULL);
 
     pthread_join(userSimulatorThread, NULL);

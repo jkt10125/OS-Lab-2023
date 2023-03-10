@@ -38,11 +38,11 @@ void pushToFriends(int tid, Action *action)
 
         // print to console
         pthread_mutex_lock(&omutex);
-        cerr << setw(20) << left << str;
-        cerr << (action->actionType == Action::POST ? "pushed a post " : (action->actionType == Action::LIKE ? "pushed a like " : "pushed a comment "));
-        cerr << "(ID: " << action->actionId << ") ";
-        cerr << "from user#" << action->userId << " ";
-        cerr << "to user#" << f.node->userId << endl;
+        cout << setw(20) << left << str;
+        cout << (action->actionType == Action::POST ? "pushed a post " : (action->actionType == Action::LIKE ? "pushed a like " : "pushed a comment "));
+        cout << "(ID: " << action->actionId << ") ";
+        cout << "from user#" << action->userId << " ";
+        cout << "to user#" << f.node->userId << endl;
         pthread_mutex_unlock(&omutex);
     }
 }

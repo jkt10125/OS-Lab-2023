@@ -10,7 +10,6 @@ using namespace std;
 Action *generateAction(Node *node)
 {
     Action *newAction;
-    Action::actionCount++;
     newAction = new Action(node->userId, static_cast<Action::ACTION_TYPE>(getRandom(0, 2)));
     node->wall.push(*newAction);
     return newAction;
@@ -64,7 +63,7 @@ void *userSimulatorRunner(void *param)
             // print to console
             pthread_mutex_lock(&omutex);
             for (Action *newAction : actions)
-                cerr << setw(20) << left << "Simulater$ " << *newAction;
+                cout << setw(20) << left << "Simulater$ " << *newAction;
             pthread_mutex_unlock(&omutex);
         }
         sleep(120);

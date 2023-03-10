@@ -3,9 +3,11 @@
 #include "definitions.hpp"
 using namespace std;
 
-uint64_t Action::actionCount = 0;
+uint64_t Action::postCount = 0;
+uint64_t Action::commentCount = 0;
+uint64_t Action::likeCount = 0;
 Action::Action() : timestamp(time(NULL)) {}
-Action::Action(int user, ACTION_TYPE type) : userId(user), actionId(actionCount), actionType(type), timestamp(time(NULL)) {}
+Action::Action(int user, ACTION_TYPE type) : userId(user), actionId((type == POST) ? ++postCount : ((type == COMMENT) ? ++commentCount : ++likeCount)), actionType(type), timestamp(time(NULL)) {}
 Action::Action(const Action &action) : userId(action.userId), actionId(action.actionId), actionType(action.actionType), timestamp(action.timestamp) {}
 Action::~Action() {}
 Action &Action::operator=(const Action &action)
@@ -84,57 +86,55 @@ Node::~Node()
 
 void Node::initPriority()
 {
-        // using Comparator_ = function<bool(pair<int, Friend> a,pair<int, Friend> b)>;
-        // Comparator_ comp;
-        // comp = [](pair<int, Friend> a, pair<int, Friend> b) -> bool
-        // { return a.second.node->userId < b.second.node->userId; };
-        // map<int, Friend>::iterator ls;
-        // map<int, Friend> mp;
 
-        // for (const pair<int, Friend> &it : friendList)
-        // {
-        //     ls = std::set_intersection(friendList.begin(), friendList.end(), nodes[it.first]->friendList.begin(), nodes[it.first]->friendList.end(), mp.begin(), comp);
+    vector<int> this_Friends;
+    for (const pair<int, Friend> &it : friendList)
+    {
+        this_Friends.push_back(it.second.node->userId);
+    }
+    sort(this_Friends.begin(), this_Friends.end());
 
-        // }
-        using Comparator_ = function<bool(pair<int, Friend> a,pair<int, Friend> b)>;
-        Comparator_ comp;
-        comp = [](pair<int, Friend> a, pair<int, Friend> b) -> bool
-        { return a.second.node->userId < b.second.node->userId; };
+    for (const pair<int, Friend> &it : friendList)
+    {
+        if (nodes[userId]->friendList[it.second.node->userId].priority >= 0)
+            continue;
 
-        vector<pair<int, Friend>> this_Friends, output;
-        for (const pair<int, Friend> &it : friendList)
+        vector<int> that_Friends;
+        for (const pair<int, Friend> &it2 : it.second.node->friendList)
         {
-            this_Friends.push_back(it);
+            that_Friends.push_back(it2.second.node->userId);
         }
-        sort(this_Friends.begin(), this_Friends.end(), comp);
-        vector<pair<int, Friend>>::iterator ls;
-
-        for (const pair<int, Friend> &it : friendList)
+        sort(that_Friends.begin(), that_Friends.end());
+        int i = 0, j = 0, p = 0;
+        while (i < this_Friends.size() && j < that_Friends.size())
         {
-            vector<pair<int, Friend>> that_Friends;
-            for (const pair<int, Friend> &it2 : it.second.node->friendList)
+            if (this_Friends[i] < that_Friends[j])
+                i++;
+            else if (this_Friends[i] > that_Friends[j])
+                j++;
+            else
             {
-                that_Friends.push_back(it2);
+                i++, j++, p++;
             }
-            sort(that_Friends.begin(), that_Friends.end(), comp);
-            ls = std::set_intersection(this_Friends.begin(), this_Friends.end(), that_Friends.begin(), that_Friends.end(), output.begin(), comp);
-            friendList[it.first].priority = ls - output.begin();
         }
+        nodes[userId]->friendList[it.second.node->userId].priority = p;
+        nodes[it.second.node->userId]->friendList[userId].priority = p;
+    }
 }
 
 ostream &operator<<(ostream &os, const Node &a)
 {
     os << "User: " << a.userId << endl;
     os << "Prefers: " << ((a.preference == Node::CHRONOLOGICAL) ? "latest feed" : "feed from close friends") << endl;
-    os << "Friend List: ";
+    os << "Friend List: \n";
     for (const pair<int, Node::Friend> &it : a.friendList)
     {
-        os << it.first << " ";
+        os << "\t" << it.first << "[" << it.second.priority << " mutual friends]" << endl;
     }
-    os << endl;
 
     Node::ActionQueue Q = a.wall;
-    os << "Wall: ";
+    if (!Q.empty())
+        os << "Wall: ";
     while (!Q.empty())
     {
         os << Q.top().actionId << " ";
@@ -143,7 +143,8 @@ ostream &operator<<(ostream &os, const Node &a)
     os << endl;
 
     Q = a.feed;
-    os << "Feed: ";
+    if (!Q.empty())
+        os << "Feed: ";
     while (!Q.empty())
     {
         os << Q.top().actionId << " ";
