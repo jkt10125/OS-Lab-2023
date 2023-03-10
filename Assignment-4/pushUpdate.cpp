@@ -5,6 +5,7 @@ using namespace std;
 
 void pushToFriends(int tid, Action *action)
 {
+    int i = 0;
     for (auto const &[id, f] : nodes[action->userId]->friendList)
     {
         PUops1[tid]++;
@@ -14,11 +15,11 @@ void pushToFriends(int tid, Action *action)
         pthread_mutex_unlock(&feedQmutex[f.node->userId]);
 
         // push node f to queue of nodes which are updated
-        pthread_mutex_lock(&feedsUpdatedQmutex[action->actionId%MAX_READ_POST_THREADS]);
-        feedsUpdatedQueue[action->actionId%MAX_READ_POST_THREADS].push(f.node);
-        pthread_cond_broadcast(&newUpdatesPushed[action->actionId%MAX_READ_POST_THREADS]);
-        pthread_mutex_unlock(&feedsUpdatedQmutex[action->actionId%MAX_READ_POST_THREADS]);
-
+        pthread_mutex_lock(&feedsUpdatedQmutex[(action->actionId + i)%MAX_READ_POST_THREADS]);
+        feedsUpdatedQueue[(action->actionId + i)%MAX_READ_POST_THREADS].push(f.node);
+        pthread_cond_broadcast(&newUpdatesPushed[(action->actionId + i)%MAX_READ_POST_THREADS]);
+        pthread_mutex_unlock(&feedsUpdatedQmutex[(action->actionId + i)%MAX_READ_POST_THREADS]);
+        i++;
         // push node f to queue of nodes which are updated
         // pthread_mutex_lock(&feedsUpdatedQmutex);
         // feedsUpdatedQueue.push(f.node);
