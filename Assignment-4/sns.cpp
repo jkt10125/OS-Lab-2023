@@ -21,9 +21,6 @@ pthread_cond_t newActionGenerated = PTHREAD_COND_INITIALIZER;
 vector<queue<Node *>> feedsUpdatedQueue(MAX_READ_POST_THREADS);
 pthread_mutex_t feedsUpdatedQmutex[MAX_READ_POST_THREADS];
 pthread_cond_t newUpdatesPushed[MAX_READ_POST_THREADS];
-// queue<Node *> feedsUpdatedQueue;
-// pthread_mutex_t feedsUpdatedQmutex = PTHREAD_MUTEX_INITIALIZER;
-// pthread_cond_t newUpdatesPushed = PTHREAD_COND_INITIALIZER;
 ofstream logfile;
 pthread_mutex_t fmutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t omutex = PTHREAD_MUTEX_INITIALIZER;
@@ -35,6 +32,12 @@ void readGraph(const string &filename)
         nodes[i] = new Node(i, (rand() % 2) ? Node::PRIORITY : Node::CHRONOLOGICAL);
     }
     ifstream in(filename);
+    if (!in.is_open())
+    {
+        perror(filename.c_str());
+        exit(1);
+    }
+    cerr << "main: Reading graph from " << filename << "....." << endl;
     string line;
     int u, v;
     getline(in, line);
@@ -47,6 +50,7 @@ void readGraph(const string &filename)
         nodes[u]->friendList[v] = Node::Friend(nodes[v]);
         nodes[v]->friendList[u] = Node::Friend(nodes[u]);
     }
+    cerr << "main: Pre-computing priority....." << endl;
     auto start = chrono::high_resolution_clock::now();
     for (int i = 0; i < MAXNODES; i++)
     {
@@ -65,6 +69,8 @@ void readGraph(const string &filename)
         gout << *nodes[i];
     }
     gout.close();
+
+    cerr << "main: Reading graph done....." << endl;
 }
 
 long long PUops0[MAX_PUSH_UPDATE_THREADS], PUops1[MAX_PUSH_UPDATE_THREADS], RDops[MAX_READ_POST_THREADS];
@@ -122,6 +128,9 @@ int main()
         feedsUpdatedQmutex[i] = PTHREAD_MUTEX_INITIALIZER;
         newUpdatesPushed[i] = PTHREAD_COND_INITIALIZER;
     }
+
+    cerr << "main: Spawning worker threads....." << endl;
+
     pthread_t userSimulatorThread, pushUpdateThreads[MAX_PUSH_UPDATE_THREADS], readPostThreads[MAX_READ_POST_THREADS], monitorThread;
     pthread_create(&userSimulatorThread, NULL, userSimulatorRunner, NULL);
     for (int i = 0; i < MAX_PUSH_UPDATE_THREADS; i++)
@@ -134,6 +143,7 @@ int main()
     }
     pthread_create(&monitorThread, NULL, monitorThreadRunner, NULL);
 
+    cerr << "main: Joining worker threads....." << endl;
     pthread_join(userSimulatorThread, NULL);
     for (int i = 0; i < MAX_PUSH_UPDATE_THREADS; i++)
     {

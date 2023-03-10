@@ -26,7 +26,7 @@ ostream &operator<<(ostream &os, const Action &a)
 {
     os << "user#" << a.userId << " ";
     os << (a.actionType == Action::POST ? "posted" : (a.actionType == Action::LIKE ? "liked" : "commented"));
-    os << " (ID:" << a.actionId << ") ";
+    os << " (ID: " << a.actionId << ") ";
     os << put_time(localtime(&a.timestamp), "at %H:%M:%S on %B %d, %Y") << endl;
     return os;
 }

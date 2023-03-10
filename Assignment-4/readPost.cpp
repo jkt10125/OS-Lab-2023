@@ -22,16 +22,6 @@ void *readPostRunner(void *param)
         feedsUpdatedQueue[tid].pop();
         pthread_mutex_unlock(&feedsUpdatedQmutex[tid]);
 
-        // pop a node whose feed is updated
-        // pthread_mutex_lock(&feedsUpdatedQmutex);
-        // while (feedsUpdatedQueue.empty())
-        // {
-        //     pthread_cond_wait(&newUpdatesPushed, &feedsUpdatedQmutex);
-        // }
-        // node = feedsUpdatedQueue.front();
-        // feedsUpdatedQueue.pop();
-        // pthread_mutex_unlock(&feedsUpdatedQmutex);
-
         vector<Action> actions;
         // pop an update from the feed of selected node
         pthread_mutex_lock(&feedQmutex[node->userId]);
