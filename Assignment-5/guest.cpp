@@ -44,6 +44,7 @@ void *simulateGuests(void *params)
                 Rooms[i].secondGuestTime = stayTime;
             }
         }
+        sem_post(&roomSemaphore[i]);
         // End acquire room part
     }
 }
