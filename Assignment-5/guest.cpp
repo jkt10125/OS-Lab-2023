@@ -1,5 +1,6 @@
 #include "definitions.h"
 #include <ctime>
+#include <semaphore>
 
 using namespace std;
 
@@ -15,66 +16,141 @@ void initGuests(int Y)
 
 void *simulateGuests(void *params)
 {
-    srand(time(NULL));
     int ID = *(int *)params;
+    srand(ID);
+    Room *room;
     while (true)
     {
         sleep(rand() % 11 + 10);
         int stayTime = rand() % 21 + 10;
-        time_t exitTime = time(nullptr) + stayTime;
-
-        // acquire room part
-        int i = 0;
-        bool ok = false;
-        for (i; i < RoomSize; i++)
+        pthread_mutex_lock(&availableRoomMutex);
+        while (totalOccupancy == 2 * RoomSize)
         {
-            sem_wait(&roomSemaphore[i]);
-            if (Rooms[i].currentGuest == -1 && (Rooms[i].firstGuestTime == -1 || Rooms[i].secondGuestTime == -1))
+            pthread_cond_wait(&availableRoomCond, &availableRoomMutex);
+        }
+        pthread_mutex_unlock(&availableRoomMutex);
+        // acquire room part
+        bool acquired = false;
+        int roomID = -1;
+        int priority = -1;
+
+        pthread_mutex_lock(&availableRoomMutex);
+        if (!availableRooms.empty())
+        {
+            room = availableRooms.front();
+            availableRooms.pop();
+            room->currentGuest = ID;
+            acquired = true;
+            cout<<"Guest "<<ID<<" Acquired Room "<<room->RoomID<<" at time "<<time(NULL)<<endl;
+            sem_init(&controlSemaphore[room->RoomID], 0, 0);
+        }
+        pthread_mutex_unlock(&availableRoomMutex);
+
+        if (!acquired)
+        {
+            cout<<"Entered Part 1"<<endl;
+            pthread_mutex_lock(&targetedRoomMutex);
+            for (int i = 0; i < RoomSize; i++)
             {
-                Rooms[i].currentGuest = ID;
-                ok = true;
+                sem_wait(&roomSemaphore[i]);
+                if (Rooms[i].currentGuest >= 0 && Guests[Rooms[i].currentGuest].Priority < Guests[ID].Priority && Guests[Rooms[i].currentGuest].Priority > priority && targetedRooms.find(i) == targetedRooms.end())
+                {
+                    priority = Guests[Rooms[i].currentGuest].Priority;
+                    roomID = i;
+                }
+                sem_post(&roomSemaphore[i]);
             }
-            sem_post(&roomSemaphore[i]);
+            pthread_mutex_unlock(&targetedRoomMutex);
+            if (roomID != -1)
+            {
+                cout<<"Entered Part 2"<<endl;
+                sem_post(&controlSemaphore[roomID]);
+                while (true)
+                {
+                    sem_wait(&roomSemaphore[roomID]);
+                    if (Rooms[roomID].currentGuest == -1)
+                    {
+                        if (Rooms[roomID].secondGuestTime == -1)
+                        {
+                            Rooms[roomID].currentGuest = ID;
+                            cout<<"Guest "<<ID<<" Acquired Evicted Room "<<room->RoomID<<" at time "<<time(NULL)<<" by Eviction"<<endl;
+                            room = &Rooms[roomID];
+                            sem_init(&controlSemaphore[room->RoomID], 0, 0);
+                            acquired = true;
+                        }
+                        pthread_mutex_lock(&targetedRoomMutex);
+                        targetedRooms.erase(roomID);
+                        pthread_mutex_unlock(&targetedRoomMutex);
+                        break;
+                    }
+                    sem_post(&roomSemaphore[roomID]);
+                }
+            }
+            if (!acquired)
+            {
+                cout<<"Entered Part 3"<<endl;
+                pthread_mutex_lock(&availableRoomMutex);
+                while (availableRooms.empty() && totalOccupancy != 2 * RoomSize)
+                {
+                    pthread_cond_wait(&availableRoomCond, &availableRoomMutex);
+                }
+                if (totalOccupancy == 2 * RoomSize)
+                {
+                    pthread_mutex_unlock(&availableRoomMutex);
+                    continue;
+                }
+                room = availableRooms.front();
+                availableRooms.pop();
+                room->currentGuest = ID;
+                sem_init(&controlSemaphore[room->RoomID], 0, 0);
+                cout<<"Guest "<<ID<<" Acquired Room "<<room->RoomID<<" at time "<<time(NULL)<<endl;
+                acquired = true;
+                pthread_mutex_unlock(&availableRoomMutex);
+            }
         }
 
         // if the guest gets a room then he stays until stay_timer expires or he is kicked out
-        if (ok)
+        if (acquired)
         {
-            time_t currentTime;
+            timespec timeout;
+            clock_gettime(CLOCK_REALTIME, &timeout);
+            timeout.tv_sec += stayTime;
 
-            while (ID != kickedGuest && (currentTime = time(nullptr)) < exitTime) ;
-
-            // if he is kicked out then he updates his kickedGuest variable
-            if (ID == kickedGuest)
-            {
-                pthread_mutex_lock(&kickedGuestMutex);
-                kickedGuest = -1;
-                pthread_mutex_unlock(&kickedGuestMutex);
-            }
-
-            stayTime -= (exitTime > currentTime) ? (exitTime - currentTime) : 0;
+            // Wait for the semaphore to be incremented, or for the timeout to expire
+            int result = sem_timedwait(&controlSemaphore[room->RoomID], &timeout);
             
-            // updating the room info
-            sem_wait(&roomSemaphore[i]);
-            if (Rooms[i].firstGuestTime == -1)
+            sem_wait(&roomSemaphore[room->RoomID]);
+            cout<<"Evicted"<<endl;
+            room->currentGuest = -1;
+            if (room->firstGuestTime == -1)
             {
-                Rooms[i].firstGuestTime = stayTime;
+                room->firstGuestTime = stayTime;
             }
             else
             {
-                Rooms[i].secondGuestTime = stayTime;
+                room->secondGuestTime = stayTime;
             }
-            sem_post(&roomSemaphore[i]);
+            pthread_mutex_lock(&targetedRoomMutex);
+            if (targetedRooms.find(room->RoomID) == targetedRooms.end() && room->secondGuestTime == -1)
+            {
+                pthread_mutex_lock(&availableRoomMutex);
+                availableRooms.push(room);
+                pthread_cond_signal(&availableRoomCond);
+                pthread_mutex_unlock(&availableRoomMutex);
+            }
+            pthread_mutex_unlock(&targetedRoomMutex);
+            sem_post(&roomSemaphore[room->RoomID]);
+
+            pthread_mutex_lock(&availableRoomMutex);
+            totalOccupancy += 1;
+            if (totalOccupancy == 2 * RoomSize)
+            {
+                sem_init(&cleanerSemaphore, 0, 0);
+                pthread_cond_broadcast(&availableRoomCond);
+            }
+            pthread_mutex_unlock(&availableRoomMutex);
         }
-
-        // else he seeks a lower priority guest occupying a room and kicks him
-        
-        else {
-
-            
-
-        }
-
         // End acquire room part
     }
+    exit(0);
 }
