@@ -42,6 +42,7 @@ void *simulateGuests(void *params)
             room->currentGuest = ID;
             acquired = true;
             cout<<"Guest "<<ID<<" Acquired Room "<<room->RoomID<<" at time "<<time(NULL)<<endl;
+            cout<<"Accessing Room "<<room->RoomID<<endl;
             sem_init(&controlSemaphore[room->RoomID], 0, 0);
         }
         pthread_mutex_unlock(&availableRoomMutex);
@@ -70,11 +71,15 @@ void *simulateGuests(void *params)
                     sem_wait(&roomSemaphore[roomID]);
                     if (Rooms[roomID].currentGuest == -1)
                     {
+                        
                         if (Rooms[roomID].secondGuestTime == -1)
                         {
+                            cout<<"Maybe Here"<<endl;
+
                             Rooms[roomID].currentGuest = ID;
-                            cout<<"Guest "<<ID<<" Acquired Evicted Room "<<room->RoomID<<" at time "<<time(NULL)<<" by Eviction"<<endl;
                             room = &Rooms[roomID];
+                            cout<<"Guest "<<ID<<" Acquired Evicted Room "<<room->RoomID<<" at time "<<time(NULL)<<" by Eviction"<<endl;
+                            
                             sem_init(&controlSemaphore[room->RoomID], 0, 0);
                             acquired = true;
                         }
@@ -139,6 +144,7 @@ void *simulateGuests(void *params)
                 pthread_mutex_unlock(&availableRoomMutex);
             }
             pthread_mutex_unlock(&targetedRoomMutex);
+            cout<<"Evicted Ended"<<endl;
             sem_post(&roomSemaphore[room->RoomID]);
 
             pthread_mutex_lock(&availableRoomMutex);
