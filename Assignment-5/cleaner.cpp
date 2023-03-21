@@ -32,12 +32,15 @@ void *simulateCleaners(void *params)
         int ID = *(int *)params;
         for (int i = 0; i < Rooms.size(); i++)
         {
-            if (i % ID == 0)
+            if (i % Cleaners == ID)
             {
                 clean(Rooms[i].firstGuestTime + Rooms[i].secondGuestTime);
                 Rooms[i].firstGuestTime = -1;
                 Rooms[i].secondGuestTime = -1;
                 Rooms[i].currentGuest = -1;
+                pthread_mutex_lock(&availableRoomMutex);
+                availableRooms.push(&Rooms[i]);
+                pthread_mutex_unlock(&availableRoomMutex);
             }
         }
         cout<<"Cleaner "<<*(int *)params<<" finished cleaning at time "<<time(NULL)<<endl;
@@ -48,6 +51,7 @@ void *simulateCleaners(void *params)
             CleanerDone = 0;
             pthread_mutex_lock(&availableRoomMutex);
             totalOccupancy = 0;
+            pthread_cond_broadcast(&availableRoomCond);
             pthread_mutex_unlock(&availableRoomMutex);
 
             sem_post(&cleanerSemaphore);
