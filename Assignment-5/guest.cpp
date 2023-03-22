@@ -11,6 +11,7 @@ void initGuests(int Y)
     for (int i = 0; i < Guests.size(); i++)
     {
         Guests[i].Priority = rand() % Y + 1;
+        cout<< "Guest "<<i<<" Priority "<<Guests[i].Priority<<endl;
     }
 }
 
@@ -131,6 +132,7 @@ void *simulateGuests(void *params)
             timeout.tv_sec += stayTime;
 
             // Wait for the semaphore to be incremented, or for the timeout to expire
+            cout<<"Guest "<<ID<<" Waiting for "<<stayTime<<" seconds"<<endl;
             int result = sem_timedwait(&controlSemaphore[room->RoomID], &timeout);
             if (result == -1)
             {
@@ -164,7 +166,7 @@ void *simulateGuests(void *params)
                 cout << "Pushing Room " << room->RoomID << " into available Queue" << endl;
                 pthread_mutex_lock(&availableRoomMutex);
                 availableRooms.push(room);
-                pthread_cond_signal(&availableRoomCond);
+                pthread_cond_broadcast(&availableRoomCond);
                 pthread_mutex_unlock(&availableRoomMutex);
             }
             pthread_mutex_unlock(&targetedRoomMutex);
