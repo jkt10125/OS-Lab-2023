@@ -22,6 +22,7 @@ class Guest
 {
 public:
     int Priority;
+    int GuestID;
 };
 
 extern pthread_mutex_t targetedRoomMutex;
@@ -42,6 +43,12 @@ extern std::set<int> targetedRooms;
 void initGuests(int Y);
 void initRooms(int N);
 void initSemaphores();
+void updateOccupancy();
+void updateRoom(Room *&room, int stayTime);
+void checkOccupancy(int ID);
+int checkIn(Room *&room, int ID);
+int evict(Room *&room, int ID, int roomID);
+int identifyGuestToEvict(int ID);
 void *simulateGuests(void *params);
 void *simulateCleaners(void *params);
 void clean(int T);

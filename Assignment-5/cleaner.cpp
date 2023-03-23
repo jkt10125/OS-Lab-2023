@@ -34,6 +34,7 @@ void *simulateCleaners(void *params)
         {
             if (i % Cleaners == ID)
             {
+                cout<<"Cleaner "<<ID<<" cleaning Room "<<i<<" for time "<<Rooms[i].firstGuestTime + Rooms[i].secondGuestTime<<endl;
                 clean(Rooms[i].firstGuestTime + Rooms[i].secondGuestTime);
                 Rooms[i].firstGuestTime = -1;
                 Rooms[i].secondGuestTime = -1;
