@@ -36,6 +36,7 @@ IO lock     Console.log Lines       time
 
 
  Commands:
-
- FeedUpdater: awk '/^FeedUpdater/ {a[$1]+=$3} END {for(i in a){ print i ": " a[i]; sum += a[i];} print "Sum: " sum}' time.log
- FeedReader : awk '/^FeedReader/ {a[$1]+=$3} END {for(i in a){ print i ": " a[i]; sum += a[i];} print "Sum: " sum}' time.log
+ FeedUpdater: awk '/^FeedUpdater/ {a[$1]+=$3} /^ /{for(i=0; i<10; i++) a[i]=0} END {for(i in a){ print i ": " a[i]; sum += a[i];} print "Sum: " sum}' time.log
+ FeedReader : awk '/^FeedReader/  {a[$1]+=$3; b[$1]+=$3;} /^ /{ if(time>0){tot=0; for(i in b) tot+=b[i]; if(tot>0) print "Total " tot " actions processed in " time "-th second."} for(i in b) b[i]=0; time++;} END { print "\n\nAt " time " seconds."; for(i in a){ print i ": " a[i]; sum += a[i];} print "Sum: " sum}' time.log
+ FeedUpdater: awk '/^FeedUpdater/ {a[$1]+=$3; b[$1]+=$3;} /^ /{ if(time>0){tot=0; for(i in b) tot+=b[i]; if(tot>0) print "Total " tot " actions processed in " time "-th second."} for(i in b) b[i]=0; time++;} END { print "\n\nAt " time " seconds."; for(i in a){ print  i ": " a[i]; sum += a[i];} print "Sum: " sum; print time}' time.log
+ 

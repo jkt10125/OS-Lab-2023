@@ -1,5 +1,6 @@
 #ifndef DEFINITIONS_HPP
 #define DEFINITIONS_HPP
+#define ALPHA 0.2
 
 #include <iostream>
 #include <vector>
@@ -28,6 +29,7 @@ public:
 extern pthread_mutex_t targetedRoomMutex;
 extern pthread_mutex_t availableRoomMutex;
 extern pthread_mutex_t CleanerMutex;
+extern pthread_mutex_t omutex;
 extern pthread_cond_t availableRoomCond;
 extern pthread_cond_t CleanerCond;
 extern sem_t cleanerSemaphore;

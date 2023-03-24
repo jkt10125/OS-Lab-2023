@@ -1,3 +1,4 @@
+CXXFLAGS=-Wall
 main: main.o guest.o cleaner.o
 	g++ -Wall -o main main.o guest.o cleaner.o
 

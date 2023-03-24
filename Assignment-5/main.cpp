@@ -16,6 +16,7 @@ sem_t cleanerSemaphore;
 pthread_mutex_t targetedRoomMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t availableRoomMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t CleanerMutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t omutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t availableRoomCond = PTHREAD_COND_INITIALIZER;
 pthread_cond_t CleanerCond = PTHREAD_COND_INITIALIZER;
 
@@ -52,15 +53,13 @@ int main()
     //create guest threads
     for (int i = 0; i < Y; i++)
     {
-        int *ID = new int;
-        *ID = i;
+        int *ID = new int(i);
         pthread_create(&guestThreads[i], NULL, simulateGuests, (void *)ID);
     }
     //create cleaner threads
     for (int i = 0; i < X; i++)
     {
-        int *ID = new int;
-        *ID = i;
+        int *ID = new int(i);
         pthread_create(&cleanerThreads[i], NULL, simulateCleaners, (void *)ID);
     }
     //join guest threads
