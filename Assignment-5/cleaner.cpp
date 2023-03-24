@@ -33,26 +33,34 @@ void *simulateCleaners(void *params)
         pthread_mutex_lock(&omutex);
         cout << "Cleaner " << cleanerID << " started cleaning at " << put_time(localtime(&(now = time(NULL))), "%H:%M:%S") << endl;
         pthread_mutex_unlock(&omutex);
-        for (int i = 0; i < static_cast<int>(Rooms.size()); i++)
+
+        while (true)
         {
-            if (i % Cleaners == cleanerID)
-            {
-                int cleaningTime = static_cast<int>(ALPHA * (Rooms[i].firstGuestTime + Rooms[i].secondGuestTime));
-                pthread_mutex_lock(&omutex);
-                cout << "Cleaner " << cleanerID << " cleaning Room " << i << " for " << cleaningTime << " seconds." << endl;
-                pthread_mutex_unlock(&omutex);
-                clean(cleaningTime);
-                Rooms[i].firstGuestTime = -1;
-                Rooms[i].secondGuestTime = -1;
-                Rooms[i].currentGuest = -1;
-                pthread_mutex_lock(&availableRoomMutex);
-                availableRooms.push(&Rooms[i]);
-                pthread_mutex_unlock(&availableRoomMutex);
+            sem_wait(&cleanerCountSemaphore);
+            int curr = roomsDone;
+            if(roomsDone == RoomSize){
+                sem_post(&cleanerCountSemaphore);
+                break;
             }
+            roomsDone++;
+            sem_post(&cleanerCountSemaphore);
+            int cleaningTime = static_cast<int>(ALPHA * (Rooms[curr].firstGuestTime + Rooms[curr].secondGuestTime));
+            pthread_mutex_lock(&omutex);
+            cout << "Cleaner " << cleanerID << " cleaning Room " << curr << " for " << cleaningTime << " seconds." << endl;
+            pthread_mutex_unlock(&omutex);
+            clean(cleaningTime);
+            Rooms[curr].firstGuestTime = -1;
+            Rooms[curr].secondGuestTime = -1;
+            Rooms[curr].currentGuest = -1;
+            pthread_mutex_lock(&availableRoomMutex);
+            availableRooms.push(&Rooms[curr]);
+            pthread_mutex_unlock(&availableRoomMutex);
         }
+
         pthread_mutex_lock(&omutex);
         cout << "Cleaner " << cleanerID << " finished cleaning at " << put_time(localtime(&(now = time(NULL))), "%H:%M:%S") << endl;
         pthread_mutex_unlock(&omutex);
+
         pthread_mutex_lock(&CleanerMutex);
         CleanerDone++;
         if (CleanerDone == Cleaners)
@@ -61,6 +69,7 @@ void *simulateCleaners(void *params)
             cout << "Cleaning staff finished cleaning at " << put_time(localtime(&(now = time(NULL))), "%H:%M:%S") << endl;
             pthread_mutex_unlock(&omutex);
             CleanerDone = 0;
+            roomsDone = 0;
             pthread_mutex_lock(&availableRoomMutex);
             totalOccupancy = 0;
             pthread_cond_broadcast(&availableRoomCond);

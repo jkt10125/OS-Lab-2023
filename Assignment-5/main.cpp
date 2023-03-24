@@ -10,9 +10,11 @@ int RoomSize, Cleaners;
 int totalOccupancy = 0;
 int isCleaning = 0;
 int CleanerDone = 0;
+int roomsDone = 0;
 std::vector<sem_t> roomSemaphore;
 std::vector<sem_t> controlSemaphore;
 sem_t cleanerSemaphore;
+sem_t cleanerCountSemaphore;
 pthread_mutex_t targetedRoomMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t availableRoomMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t CleanerMutex = PTHREAD_MUTEX_INITIALIZER;
@@ -32,6 +34,7 @@ void initSemaphores()
         sem_init(&controlSemaphore[i], 0, 0);
     }
     sem_init(&cleanerSemaphore, 0, 0);
+    sem_init(&cleanerCountSemaphore, 0, 1);
 }
 
 int main()
