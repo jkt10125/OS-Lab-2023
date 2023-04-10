@@ -20,8 +20,10 @@ struct vInfo {
     void *vPtr;
 };
 
+// Global Page Table data structure
 vector<pair<fInfo, vector<vInfo>>> PT;
 
+// Function to check if the memory is occupied
 bool memory_is_occupied(const void* ptr, size_t size) {
     const unsigned char *p = static_cast<const unsigned char *>(ptr);
     for (size_t i = 0; i < size; ++i) {
@@ -30,6 +32,7 @@ bool memory_is_occupied(const void* ptr, size_t size) {
     return false;
 }
 
+// Function to create memory space of given size
 void *createMem(size_t size) {
     void *mem = malloc(size);
     // error handling
@@ -42,9 +45,10 @@ void *createMem(size_t size) {
     return mem;
 }
 
+// function to free the memory space or to free the list
 void freeElem(string name);
-void printPageTable();
 
+// function to create the linked list of given size
 void createList(std::string name, size_t size) {
     auto &entry = PT.back();
     fInfo f = entry.first;
@@ -71,7 +75,8 @@ void createList(std::string name, size_t size) {
         }
         addr_size--;
     }
-
+    itr_prev->next = itr_prev;
+    // error handling
     if (addr_size == 0 && size > 0) {
         std::cout << "Error: Memory allocation failed.\n";
         // assigning appropriate memory size to free
@@ -83,6 +88,7 @@ void createList(std::string name, size_t size) {
     }
 }
 
+// function to set the value to a particular index of the linked list
 void assignVal(std::string name, size_t index, size_t val) {
     
     void *ptr = NULL;
@@ -98,6 +104,7 @@ void assignVal(std::string name, size_t index, size_t val) {
         }
     }
 
+    // error handling
     if (ptr == NULL) {
         std::cout << "Error: No such variable exists.\n";
         exit(1);
@@ -115,6 +122,7 @@ void assignVal(std::string name, size_t index, size_t val) {
     itr->data = val;
 }
 
+// function to get the value of a particular index of the linked list
 int getVal(std::string name, size_t index) {
     void *ptr = NULL;
     size_t size = 0;
@@ -128,7 +136,8 @@ int getVal(std::string name, size_t index) {
             }
         }
     }
-
+    
+    // error handling
     if (ptr == NULL) {
         std::cout << "Error: No such variable exists.\n";
         exit(1);
@@ -174,7 +183,7 @@ void freeElem(std::string name = "") {
                 break;
             }
         }
-
+        // error handling
         if (ptr == NULL) {
             std::cout << "Error: No such variable exists.\n";
             exit(1);
@@ -190,8 +199,8 @@ void freeElem(std::string name = "") {
     }
 }
 
+// function that adds the local Page Table entry
 void updatePageTable(fInfo f, size_t size, void *ptr) {
-    // update the local Page Table entry
     PT.push_back(make_pair(f, vector<vInfo> {{"", size, ptr}}));
 }
 
@@ -268,10 +277,13 @@ int main() {
     element *itr = (element *)createMem(50000 * sizeof(element));
     updatePageTable({__FUNCTION__, {}}, 50000 * sizeof(element), itr);
     
-    createList("A", 50000);
+    createList("A", 5000);
+    createList("B", 100);
 
-    for (int i = 0; i < 50000; i++) {
-        assignVal("A", i, rand() % 100000);
+    printPageTable();
+
+    for (int i = 0; i < 5000; i++) {
+        assignVal("A", i, rand() % 10000);
     }
 
     for (int i = 0; i < 15; i++) {
