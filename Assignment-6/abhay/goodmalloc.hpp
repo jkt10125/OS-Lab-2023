@@ -61,17 +61,15 @@ void createMem(int);                                   // A function to create a
 void createList(const char *, int);                    // Returns the page table entry. Using this function you can create an array of the above types. These variables reside in the memory created by createMem.
 void assignVal(const char *, int, uint32_t, int = -1); // Pass the page table entry. Assign values to array or array elements. Have a light typechecking, your boolean variable cannot hold an int etc
 uint32_t accessVal(const char *, int = 0, int = -1);   // returns the value of the variable
-void freeElem(const char * = NULL);                           // Mark the element to be freed by the garbage collector
+void freeElem(const char * = NULL);                    // Mark the element to be freed by the garbage collector
 void freeMem();                                        // Free the memory segment created by createMem // Extra                                      // Needs to be called by the programmer to indicate the end of a scope
-void freeElemUtil(PageTableEntry *var);              // called by cleanBookkeepers to remove the element from the tables and the memory
+void freeElemUtil(PageTableEntry *var);                // called by cleanBookkeepers to remove the element from the tables and the memory
 void print_main_memory();                              // prints the main memory
 void startScope();                                     // Needs to be called by the programmer to indicate the start of a new scope
 void endScope();
 int getScope();
-void cleanBookkeepers();  
+void cleanBookkeepers();
 void coalesce();
-int coalesceUtil();
-
 int CreatePartitionMainMemory(int size);
 void FreePartitionMainMemory(int idx);
 

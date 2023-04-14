@@ -14,7 +14,7 @@ test: mergesort.cpp libgoodmalloc.a
 	@ g++ -Wall -o test mergesort.cpp -L. -lgoodmalloc
 	@ echo "Done"
 	@ echo -n "Running test file... "
-	@ ./test > out.txt 
+	@ ./test > out.txt
 	@ echo "Done"
 
 install: libgoodmalloc.a

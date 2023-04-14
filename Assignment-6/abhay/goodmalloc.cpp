@@ -11,6 +11,7 @@ int CURRENT_SCOPE;
 int unmarkedCounter = 0;
 int memoryInUse = 0;
 int allocated = 0;
+
 void startScope()
 {
     CURRENT_SCOPE++;
@@ -70,6 +71,7 @@ StackEntry *Stack::pop()
         return ret;
     }
 }
+
 PageTableEntry *Stack::peek()
 {
     if (~this->top)
@@ -94,12 +96,14 @@ PageTableEntry *Stack::getPageTableEntry(const char *name, int scope)
     }
     return NULL;
 }
+
 void Stack::trace()
 {
     printf("[Stack::trace]: Stack has %d entries, it looks like:\n", this->top + 1);
     for (int i = this->top; ~i; i--)
         printf("[Stack::trace]: Scope Number %d \t Redirect %ld \t To be free %d\n", this->arr[i].scope_tbf >> 1, this->arr[i].redirect - PAGE_TABLE->arr, this->arr[i].scope_tbf & 1);
 }
+
 void PageTable::init(int mx, PageTableEntry *mem_block)
 {
     this->arr = mem_block;
@@ -154,7 +158,7 @@ void PageTable::unmark(uint32_t idx)
     this->arr[idx].next &= -2;
     if (unmarkedCounter > 1000)
     {
-        unmarkedCounter = 0;
+        // unmarkedCounter = 0;
         // cleanBookkeepers();
     }
 }
@@ -193,68 +197,66 @@ void cleanBookkeepers()
     // print_main_memory();
     // printf("done with cleanBookkeepers\n");
 }
-int coalesceUtil()
-{
-    int coalesce_count = 0;
-    // write coalesce once code here
-    // traverse the list
-    // at the first hole
-    // copy the elements
-    // remember the old address
-    // find the entry in the page with the old address and update it
-    int *p = MAIN_MEMORY;
-    int *next = p + (*p >> 1);
-    while (next != MAIN_MEMORY + main_memory_size)
-    {
-        if ((*p & 1) == 0 && (*next & 1) == 1)
-        {
-            int sz1 = *p >> 1;
-            int sz2 = *next >> 1;
-            memmove(p, next, sz2 << 2);
 
-            for (uint32_t j = 0; j < PAGE_TABLE->max_size; j++)
-            {
-                if (PAGE_TABLE->arr[j].mem_offset + 1 == (next - MAIN_MEMORY))
-                {
-                    PAGE_TABLE->arr[j].mem_offset = (p - MAIN_MEMORY);
-                    break;
-                }
-            }
-
-            p = p + sz2;
-            *p = sz1 << 1;
-            *(p + sz1 - 1) = sz1 << 1;
-            next = p + sz1;
-            if (next < MAIN_MEMORY + main_memory_size and !(*next & 1)) // coalesce if the next block is free
-            {
-                sz1 = sz1 + (*next >> 1);
-                *p = sz1 << 1;
-                *(p + sz1 - 1) = sz1 << 1;
-                next = p + sz1;
-            }
-            coalesce_count++;
-            break;
-        }
-        else
-        {
-            p = next;
-            next = p + (*p >> 1);
-        }
-    }
-    if (coalesce_count)
-    {
-        printf("[coalesceUtil]: Compacted first hole\n");
-        // print_main_memory();
-    }
-
-    return coalesce_count;
-}
 void coalesce()
 {
     printf("[coalesce]: Before coalesceion\n");
     print_main_memory();
-    while (coalesceUtil())
-        ;
+    int coalesce_count;
+    do
+    {
+        coalesce_count = 0;
+        // write coalesce once code here
+        // traverse the list
+        // at the first hole
+        // copy the elements
+        // remember the old address
+        // find the entry in the page with the old address and update it
+        int *p = MAIN_MEMORY;
+        int *next = p + (*p >> 1);
+        while (next != MAIN_MEMORY + main_memory_size)
+        {
+            if ((*p & 1) == 0 && (*next & 1) == 1)
+            {
+                int sz1 = *p >> 1;
+                int sz2 = *next >> 1;
+                memmove(p, next, sz2 << 2);
+
+                for (uint32_t j = 0; j < PAGE_TABLE->max_size; j++)
+                {
+                    if (PAGE_TABLE->arr[j].mem_offset + 1 == (next - MAIN_MEMORY))
+                    {
+                        PAGE_TABLE->arr[j].mem_offset = (p - MAIN_MEMORY);
+                        break;
+                    }
+                }
+
+                p = p + sz2;
+                *p = sz1 << 1;
+                *(p + sz1 - 1) = sz1 << 1;
+                next = p + sz1;
+                if (next < MAIN_MEMORY + main_memory_size and !(*next & 1)) // coalesce if the next block is free
+                {
+                    sz1 = sz1 + (*next >> 1);
+                    *p = sz1 << 1;
+                    *(p + sz1 - 1) = sz1 << 1;
+                    next = p + sz1;
+                }
+                coalesce_count++;
+                break;
+            }
+            else
+            {
+                p = next;
+                next = p + (*p >> 1);
+            }
+        }
+        if (coalesce_count)
+        {
+            printf("[coalesce]: Compacted a hole\n");
+            // print_main_memory();
+        }
+    } while (coalesce_count != 0);
     printf("[coalesce]: Done coalesceing\n");
 }
 
@@ -356,7 +358,7 @@ void createList(const char *name, int sz)
             if (strcmp(GLOBAL_STACK->arr[i].name, name) == 0)
             {
                 printf("[createList]: Failed to create list due to name conflict\n");
-                return;
+                exit(0);
             }
         }
     }
@@ -365,7 +367,7 @@ void createList(const char *name, int sz)
     GLOBAL_STACK->push(PAGE_TABLE->arr + idx, name);
 
     allocated += sz * sizeof(int);
-    memoryInUse = GLOBAL_STACK->top * sizeof(StackEntry) + PAGE_TABLE->curr_size * sizeof(PageTableEntry) + allocated;
+    memoryInUse = GLOBAL_STACK->top * sizeof(StackEntry) + allocated;
 }
 
 uint32_t accessVal(const char *name, int idx, int scope)
@@ -392,7 +394,7 @@ void assignVal(const char *name, int idx, uint32_t val, int scope)
     if (arr == NULL)
     {
         printf("[AssignList]: Trying to access an undefined variable %s\n", name);
-        return;
+        exit(1);
     }
     *((int *)(MAIN_MEMORY + arr->mem_offset + idx)) = val;
     // printf("[AssignArr]: Assigned %d to array at index %d, it looks like %d\n", val, arr->mem_offset + idx, *((MAIN_MEMORY + arr->mem_offset + idx)));
@@ -426,11 +428,11 @@ void freeElem(const char *name)
     if (var == NULL)
     {
         printf("[freeElem]: Trying to free a variable that is not declared\n");
-        exit(0);
+        exit(1);
     }
     allocated -= PAGE_TABLE->arr[var - PAGE_TABLE->arr].total_size / 8;
-    memoryInUse = GLOBAL_STACK->top * sizeof(StackEntry) + PAGE_TABLE->curr_size * sizeof(PageTableEntry) + allocated;
     PAGE_TABLE->unmark(var - PAGE_TABLE->arr);
+    memoryInUse = GLOBAL_STACK->top * sizeof(StackEntry) + allocated;
 }
 
 void freeElemUtil(PageTableEntry *var)
