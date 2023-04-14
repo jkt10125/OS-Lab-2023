@@ -1,307 +1,195 @@
-#include <bits/stdc++.h>
+#include <iostream>
+#include <time.h>
+#include <iomanip>
+#include "memlab.hpp"
+#include <fstream>
+#define MAX_SIZE 500
 using namespace std;
 
-// Structure for the callee function information
-struct fInfo {
-    string fName;
-    vector<int> fArgs;
-};
-
-
-struct element {
-    int data;
-    element *prev, *next;
-};
-
-// structure for the variable information
-struct vInfo {
-    string vName;
-    size_t vSize;
-    void *vPtr;
-};
-
-// Global Page Table data structure
-vector<pair<fInfo, vector<vInfo>>> PT;
-
-// Function to check if the memory is occupied
-bool memory_is_occupied(const void* ptr, size_t size) {
-    const unsigned char *p = static_cast<const unsigned char *>(ptr);
-    for (size_t i = 0; i < size; ++i) {
-        if (p[i] != 0) return true;
+void merge(const char *arr, int scope, int l, int m, int r)
+{
+    startScope();
+    // create temp arrays
+    int n1 = m - l + 1;
+    int n2 = r - m;
+    CreateArray("a", n1);
+    CreateArray("b", n2);
+    // copy data to temp arrays L[] and R[]
+    for (int i = 0; i < n1; i++)
+    {
+        AssignArray("a", i, accessVar(arr, l + i, scope));
     }
-    return false;
-}
-
-// Function to create memory space of given size
-void *createMem(size_t size) {
-    void *mem = malloc(size);
-    // error handling
-    if (mem == NULL) {
-        std::cout << "Error: Memory allocation failed.\n";
-        exit(1);
+    for (int j = 0; j < n2; j++)
+    {
+        AssignArray("b", j, accessVar(arr, m + 1 + j, scope));
     }
-
-    memset(mem, 0, size);
-    return mem;
-}
-
-// function to free the memory space or to free the list
-void freeElem(string name);
-
-// function to create the linked list of given size
-void createList(std::string name, size_t size) {
-    auto &entry = PT.back();
-    fInfo f = entry.first;
-    void *ptr = entry.second.front().vPtr;
-    size_t addr_size = entry.second.front().vSize / sizeof(element);
-
-    assert (entry.second.front().vName.empty());
-
-    element *itr = (element *)ptr, *itr_prev = NULL;
-
-    // create the linked list of given size in the allocated memory space
-    // and assign only the unoccupied memory blocks using FIRST FIT Strategy
-    for (; size > 0 && addr_size > 0; itr++) {
-        if (!memory_is_occupied(itr, sizeof(element))) {
-            itr->data = 0;
-            itr->prev = itr_prev;
-            if (itr_prev != NULL) itr_prev->next = itr;
-            else {
-                // updatePageTable(f, name, size, itr);
-                entry.second.push_back({name, size * sizeof(element), itr});
-            }
-            itr_prev = itr;
-            size--;
+    // merge the temp arrays back into arr[l..r]
+    int i = 0; // initial index of first subarray
+    int j = 0; // initial index of second subarray
+    int k = l; // initial index of merged subarray
+    while (i < n1 && j < n2)
+    {
+        if (accessVar("a", i) <= accessVar("b", j))
+        {
+            AssignArray(arr, k, accessVar("a", i), scope);
+            i++;
         }
-        addr_size--;
-    }
-    itr_prev->next = itr_prev;
-    // error handling
-    if (addr_size == 0 && size > 0) {
-        std::cout << "Error: Memory allocation failed.\n";
-        // assigning appropriate memory size to free
-        if (itr_prev != NULL) {
-            entry.second.back().vSize -= size * sizeof(element);
-            freeElem(name);
+        else
+        {
+            AssignArray(arr, k, accessVar("b", j), scope);
+            j++;
         }
-        exit(1);
+        k++;
     }
-}
-
-// function to set the value to a particular index of the linked list
-void assignVal(std::string name, size_t index, size_t val) {
+    // copy the remaining elements of "a"[], if there are any
+    while (i < n1)
+    {
+        AssignArray(arr, k, accessVar("a", i), scope);
+        i++;
+        k++;
+    }
+    // copy the remaining elements of "b"[], if there are any
+    while (j < n2)
+    {
+        AssignArray(arr, k, accessVar("b", j), scope);
+        j++;
+        k++;
+    }
+    freeElem("a");
+    freeElem("b");
+    endScope();
     
-    void *ptr = NULL;
-    size_t size = 0;
-
-    for (auto entry = PT.rbegin(); entry != PT.rend(); entry++) {
-        for (auto it : entry->second) {
-            if (it.vName == name) {
-                ptr = it.vPtr;
-                size = it.vSize / sizeof(element);
-                break;
-            }
-        }
-    }
-
-    // error handling
-    if (ptr == NULL) {
-        std::cout << "Error: No such variable exists.\n";
-        exit(1);
-    }
-
-    if (index >= size || index < 0) {
-        std::cout << index << ' ' << size << "Error: Index out of bounds.\n";
-        exit(1);
-    }
-
-    element *itr = (element *)ptr;
-    for (int i = 0; i < index; i++) {
-        itr = itr->next;
-    }
-    itr->data = val;
 }
 
-// function to get the value of a particular index of the linked list
-int getVal(std::string name, size_t index) {
-    void *ptr = NULL;
-    size_t size = 0;
+void merge_sort(const char *arr, int scope, int l, int r)
+{
+    startScope();
+    if (l < r)
+    {
+        int m = l + (r - l) / 2;
+        merge_sort(arr, scope, l, m);
+        merge_sort(arr, scope, m + 1, r);
+        merge(arr, scope, l, m, r);
+    }
+    endScope();
+}
 
-    for (auto entry = PT.rbegin(); entry != PT.rend(); entry++) {
-        for (auto it : entry->second) {
-            if (it.vName == name) {
-                ptr = it.vPtr;
-                size = it.vSize / sizeof(element);
-                break;
-            }
-        }
+int main()
+{
+
+    CreateMemory(250*1024*1024);
+
+    startScope();
+    CreateArray("c", MAX_SIZE);
+    for (int i = 0; i < MAX_SIZE; i++)
+    {
+        AssignArray("c", i, rand() % 100000+1);
     }
     
-    // error handling
-    if (ptr == NULL) {
-        std::cout << "Error: No such variable exists.\n";
-        exit(1);
-    }
-
-    if (index >= size || index < 0) {
-        std::cout << "Error: Index out of bounds.\n";
-        exit(1);
-    }
-
-    element *itr = (element *)ptr;
-    for (int i = 0; i < index; i++) {
-        itr = itr->next;
-    }
-    return itr->data;
-}
-
-void freeElem(std::string name = "") {
-    if (name.empty()) {
-        // remove the last entry from the page table 
-        // (i.e the current function address space)
-        auto entry = PT.back();
-        fInfo f = entry.first;
-        void *ptr = entry.second.front().vPtr;
-
-        free(ptr);
-        PT.pop_back();
-    }
-    else {
-        auto &entry = PT.back();
-        fInfo f = entry.first;
-        void *ptr = NULL;
-        size_t size = 0;
-
-        for (int i = 0; i < entry.second.size(); i++) {
-            auto it = entry.second[i];
-            if (it.vName == name) {
-                ptr = it.vPtr;
-                size = it.vSize / sizeof(element);
-                // delete the entry from the page table
-                // delete by the array index
-                entry.second.erase(entry.second.begin() + i);
-                break;
-            }
-        }
-        // error handling
-        if (ptr == NULL) {
-            std::cout << "Error: No such variable exists.\n";
-            exit(1);
-        }
-
-        element *itr = (element *)ptr;
-        while (size > 1) {
-            itr = itr->next;
-            memset(itr->prev, 0, sizeof(element));
-            size--;
-        }
-        if (size) memset(itr, 0, sizeof(element));
-    }
-}
-
-// function that adds the local Page Table entry
-void updatePageTable(fInfo f, size_t size, void *ptr) {
-    PT.push_back(make_pair(f, vector<vInfo> {{"", size, ptr}}));
-}
-
-void printPageTable () {
-    for (auto entry : PT) {
-        fInfo f = entry.first;
-        std::cout << f.fName << ": ";
-        for (int it : f.fArgs) {
-            std::cout << it << " ";
-        }
-        std::cout << "\n";
-        for (auto it : entry.second) {
-            std::cout << it.vName << " | " << it.vSize << " | " << it.vPtr << "\n";
-        }
-    }
-}
-
-void merge(string name, int l, int m, int r) {
-    element *itr = (element *)createMem((r - l + 1) * sizeof(element));
-    updatePageTable({__FUNCTION__, {l, m, r}}, (r - l + 1) * sizeof(element), itr);
-
-    createList ("tmp", r - l + 1);
-    int p1 = l, p2 = m + 1, p3 = 0;
-    while (p1 <= m && p2 <= r) {
-        int v1 = getVal(name, p1);
-        int v2 = getVal(name, p2);
-        if (v1 < v2) {
-            assignVal("tmp", p3++, v1);
-            p1++;
-        }
-        else {
-            assignVal("tmp", p3++, v2);
-            p2++;
-        }
-    }
-    while (p1 <= m) {
-        assignVal("tmp", p3++, getVal(name, p1++));
-    }
-    while (p2 <= r) {
-        assignVal("tmp", p3++, getVal(name, p2++));
-    }
-    for (int i = l; i <= r; i++) {
-        assignVal(name, i, getVal("tmp", i - l));
-    }
-
-    freeElem("tmp");
-    freeElem();
-}
-
-void mergesort(string name, int l, int r) {
-    if(l >= r) return;
-    int m = l + (r - l) / 2;
-    mergesort(name, l, m);
-    mergesort(name, m + 1, r);
-    merge(name, l, m, r);
-}
-
-void bubblesort(string name, int l, int r) {
-    for (int i = l; i <= r; i++) {
-        for (int j = r - 1; j > l; j--) {
-            if (getVal(name, j) < getVal(name, j - 1)) {
-                int temp = getVal(name, j);
-                assignVal(name, j, getVal(name, j - 1));
-                assignVal(name, j - 1, temp);
-            }
-        }
-    }
-}
-
-int main() {
-    updatePageTable({"global", {}}, 0, NULL);
-
-
-    element *itr = (element *)createMem(50000 * sizeof(element));
-    updatePageTable({__FUNCTION__, {}}, 50000 * sizeof(element), itr);
+    ofstream out("output.txt");
     
-    createList("A", 5000);
-    createList("B", 100);
-
-    printPageTable();
-
-    for (int i = 0; i < 5000; i++) {
-        assignVal("A", i, rand() % 10000);
+    out<<"Before Sorting:"<<endl;
+    for (int i = 0; i < MAX_SIZE; i++)
+    {
+        out << accessVar("c", i) << " ";
     }
-
-    for (int i = 0; i < 15; i++) {
-        std::cout << getVal("A", i) << " ";
-    }
-
-    std::cout << std::endl;
-
     
-
-    mergesort("A", 0, 14);
-
-    // bubblesort("A", 0, 14);
-
-    for (int i = 0; i < 15; i++) {
-        std::cout << getVal("A", i) << " ";
+    out << endl;
+    merge_sort("c", getScope(), 0, MAX_SIZE - 1);
+    out<<"After Sorting:"<<endl;
+    for (int i = 0; i < MAX_SIZE; i++)
+    {
+        out << accessVar("c", i) << " ";
     }
-
-    freeElem();
-
+    out << endl;
+    out.close();
+    freeElem("c");
+    endScope();
+    freeMem();
+    return 0;
 }
+
+// void merge(string name, int l, int m, int r) {
+//     element *itr = (element *)createMem((r - l + 1) * sizeof(element));
+//     updatePageTable({__FUNCTION__, {l, m, r}}, (r - l + 1) * sizeof(element), itr);
+
+//     CreateArray ("tmp", r - l + 1);
+//     int p1 = l, p2 = m + 1, p3 = 0;
+//     while (p1 <= m && p2 <= r) {
+//         int v1 = getVal(name, p1);
+//         int v2 = getVal(name, p2);
+//         if (v1 < v2) {
+//             assignVal("tmp", p3++, v1);
+//             p1++;
+//         }
+//         else {
+//             assignVal("tmp", p3++, v2);
+//             p2++;
+//         }
+//     }
+//     while (p1 <= m) {
+//         assignVal("tmp", p3++, getVal(name, p1++));
+//     }
+//     while (p2 <= r) {
+//         assignVal("tmp", p3++, getVal(name, p2++));
+//     }
+//     for (int i = l; i <= r; i++) {
+//         assignVal(name, i, getVal("tmp", i - l));
+//     }
+
+//     freeElem("tmp");
+//     freeElem();
+// }
+
+// void mergesort(string name, int l, int r) {
+//     if(l >= r) return;
+//     int m = l + (r - l) / 2;
+//     mergesort(name, l, m);
+//     mergesort(name, m + 1, r);
+//     merge(name, l, m, r);
+// }
+
+// void bubblesort(string name, int l, int r) {
+//     for (int i = l; i <= r; i++) {
+//         for (int j = r - 1; j > l; j--) {
+//             if (getVal(name, j) < getVal(name, j - 1)) {
+//                 int temp = getVal(name, j);
+//                 assignVal(name, j, getVal(name, j - 1));
+//                 assignVal(name, j - 1, temp);
+//             }
+//         }
+//     }
+// }
+
+// int main() {
+//     updatePageTable({"global", {}}, 0, NULL);
+
+
+//     element *itr = (element *)createMem(MAX_SIZE * sizeof(element));
+//     updatePageTable({__FUNCTION__, {}}, MAX_SIZE * sizeof(element), itr);
+    
+//     CreateArray("A", MAX_SIZE);
+
+//     printPageTable();
+
+//     for (int i = 0; i < MAX_SIZE; i++) {
+//         assignVal("A", i, rand());
+//     }
+
+//     // for (int i = 0; i < 49999; i++) {
+//     //     std::cout << getVal("A", i) << " \n"[i+1==49999];
+//     // }
+//     time_t timestamp = time(NULL);
+//     cerr << put_time(localtime(&timestamp), "at %H:%M:%S on %B %d, %Y") << endl;
+//     mergesort("A", 0, 49999);
+//     cerr << put_time(localtime(&(timestamp=time(NULL))), "at %H:%M:%S on %B %d, %Y") << endl;
+
+//     // bubblesort("A", 0, 14);
+
+//     // for (int i = 0; i < 49999; i++) {
+//     //     std::cout << getVal("A", i) << " \n"[i+1==49999];
+//     // }
+
+//     freeElem();
+
+// }
