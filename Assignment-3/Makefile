@@ -4,4 +4,4 @@ main.o: main.cpp definitions.h
 producer.o: producer.cpp definitions.h
 consumer.o: consumer.cpp definitions.h
 clean:
-	rm *.o main consumer*.txt
+	rm -f *.o main consumer*.txt

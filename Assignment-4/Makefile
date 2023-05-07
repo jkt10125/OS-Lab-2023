@@ -6,4 +6,4 @@ pushUpdate.o: pushUpdate.cpp definitions.hpp
 readPost.o: readPost.cpp definitions.hpp
 definitions.o: definitions.cpp definitions.hpp
 clean:
-	rm *.o sns sns.log users.log time.log
+	rm -f *.o sns sns.log users.log time.log

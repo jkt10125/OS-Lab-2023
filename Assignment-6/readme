@@ -1,9 +1,0 @@
-readme
-
-
-mergesort.cpp contains all the necessary functions along with the mergesort and bubblesort code.
-this file is tested and working correctly.
-(altough taking too much time to sort the array - because of sequential accessing of list elements)
-
-all left is to modularize the file.
-in order to avoid any confusion i have erased the goodmalloc file.
